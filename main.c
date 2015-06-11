@@ -266,7 +266,7 @@ int main(int argc, char *argv[]) {
 			 //exitError("ERROR, no port provided");
 			 //exit(EXIT_FAILURE);
 		 	
-		 	portChar = getenv("HITANDMIS_CAMDAEMON_PORT");
+		 	portChar = getenv("CAMDAEMON_PORT");
 		 	syslog(LOG_INFO,"no port provided, using %s", portChar);
 		 } else {
 		 	portChar = argv[1];

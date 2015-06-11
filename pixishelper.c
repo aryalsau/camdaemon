@@ -153,9 +153,9 @@ extern int initCamera(){
     LOCATION = "/home/kuravih/";
 
     char *siteName, *camName, *path;
-    siteName = getenv("HITANDMIS_SITE");
-    camName = getenv("HITANDMIS_CAM");
-    path = getenv("HITANDMIS_PATH");
+    siteName = getenv("CAMDAEMON_SITE");
+    camName = getenv("CAMDAEMON_CAM");
+    path = getenv("CAMDAEMON_PATH");
     if(siteName)
         SITENAME = siteName;
     if(camName)
