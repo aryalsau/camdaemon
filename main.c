@@ -1,4 +1,5 @@
 //sudo gcc -o camdaemon main.c -landor -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
+//gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 
 //top -p $(pgrep -d',' name)
 //tail -f /var/log/syslog to top by name
