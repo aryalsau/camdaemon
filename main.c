@@ -1,7 +1,7 @@
 //sudo gcc -o camdaemon main.c -landor -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 //gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 
-//top -p $(pgrep -d',' name)
+//top -p $(pgrep -d',' camdaemon)
 //tail -f /var/log/syslog to top by name
 #ifdef __GNUC__
 #  if(__GNUC__ > 3 || __GNUC__ ==3)
@@ -12,8 +12,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "pixishelper.c"
-// #include "camhelper.c"
+//#include "pixishelper.c"
+#include "camhelper.c"
 
 void processCommand(char command[], int sock);
 static void socketHook(int sock);
@@ -72,7 +72,7 @@ static int split(char str[], char * strArray[]) {
 }
 
 void processCommand(char command[], int sock) {
-	static const char pcaptureComm[] = "preview";
+	static const char previewComm[] = "preview";
 	static const char captureComm[] = "capture";
 	static const char stopdComm[] = "stopd";
 
@@ -93,7 +93,7 @@ void processCommand(char command[], int sock) {
 			exit(1);
 		}
 
-	} else if (strstr(command,pcaptureComm) != NULL){
+	} else if (strstr(command,previewComm) != NULL){
 		commSize = split(command,commBuffer);
 		commandResponse = preview(strtol(commBuffer[1],NULL,0),sock);
 
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in server, client;
 	int n, m;
 
-	int portno = 8000;
+	portno = 8000;
 	
 	/* Fork off the parent process */
 	pid = fork();

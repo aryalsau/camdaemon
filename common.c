@@ -1,8 +1,10 @@
 #include "common.h"
 
+
 extern struct header buildHeader();
 extern void copyHeader(struct header headerStruct, uns8 *ptrFileHeader);
 extern struct filepath filePathString();
+extern struct config readConfig();
 
 int XDIM;
 int YDIM;
@@ -72,7 +74,44 @@ extern void copyHeader(struct header headerStruct, uns8 *ptrFileHeader) {
     memcpy(&ptrFileHeader[38], headerStruct.filter, 6);
 }
 
+extern struct config readConfig(){
+
+    struct config configObj;
+
+    FILE *cfgFilePtr;
+    cfgFilePtr = fopen("/home/pixis/camdaemon/config.cfg" , "r");
+    if(cfgFilePtr == NULL) {
+        perror("Error opening file");
+    }
+
+    int lineSize = 256;
+    char line[lineSize];
+    char *parameterStr;
+    char *valStr;
+    while( fgets (line, lineSize, cfgFilePtr)!=NULL ) {
+        parameterStr = strtok(line, "=");
+        valStr = strtok(NULL, "\n");
+        if (strcmp(parameterStr, "CAMDAEMON_SITE") == 0){
+            configObj.configSite = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configSite, valStr);
+            SITENAME = configObj.configSite;
+        } else if (strcmp(parameterStr, "CAMDAEMON_CAM") == 0){
+            configObj.configCam = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configCam, valStr);
+            FILTER = configObj.configCam;
+        } else if (strcmp(parameterStr, "CAMDAEMON_PATH") == 0){
+            configObj.configPath = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configPath, valStr);
+            LOCATION = configObj.configPath;
+        }
+    }
+    fclose(cfgFilePtr);
+
+    return configObj;
+}
+
 extern struct filepath filePathString() {
+
     struct filepath filePath;
 
     time_t rawTime;
@@ -111,40 +150,4 @@ extern struct filepath filePathString() {
     return filePath;
 }
 
-
-extern struct config readConfig(){
-    struct config configObj;
-
-    FILE *cfgFilePtr;
-    cfgFilePtr = fopen("config.cfg" , "r");
-    if(cfgFilePtr == NULL) {
-        perror("Error opening file");
-    }
-
-    int lineSize = 256;
-    char line[lineSize];
-    char *parameterStr;
-    char *valStr;
-    while( fgets (line, lineSize, cfgFilePtr)!=NULL ) {
-        parameterStr = strtok(line, "=");
-        valStr = strtok(NULL, "\n");
-        if (strcmp(parameterStr, "CAMDAEMON_SITE") == 0){
-            SITENAME = valStr;
-            configObj.configSite = (char *)malloc(strlen(valStr));
-            strcpy(configObj.configSite, valStr);
-        } else if (strcmp(parameterStr, "CAMDAEMON_CAM") == 0){
-            FILTER = valStr;
-            configObj.configCam = (char *)malloc(strlen(valStr));
-            strcpy(configObj.configCam, valStr);
-        } else if (strcmp(parameterStr, "CAMDAEMON_PATH") == 0){
-            LOCATION = valStr;
-            configObj.configPath = (char *)malloc(strlen(valStr));
-            strcpy(configObj.configPath, valStr);
-
-        }
-    }
-    fclose(cfgFilePtr);
-
-    return configObj;
-}
 

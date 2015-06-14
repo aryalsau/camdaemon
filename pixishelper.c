@@ -193,7 +193,7 @@ extern int initCamera(){
 
     int16 setTemp = -3500;
     set_any_param(camHandle, PARAM_TEMP_SETPOINT, &setTemp );
-    syslog(LOG_INFO, "Initialising %s...\n",camName);
+    syslog(LOG_INFO, "Initialising camdaemon...\n");
     
     return 1;
 }
@@ -271,7 +271,6 @@ extern char * capture(long expTimems){
 
 
 extern char * preview(long expTimems, int sock){
-
     int n;
     
     int16 num_frames;

@@ -57,7 +57,7 @@ extern int initCamera(){
 	// if(path)
 	// 	LOCATION = path;
 
-	syslog(LOG_INFO, "Initialising %s...\n",camName);
+	syslog(LOG_INFO, "Initialising camdaemon...\n");
 	
 	return 1;
 }
