@@ -15,19 +15,6 @@
 #include "pixishelper.c"
 // #include "camhelper.c"
 
-// char *cam = getenv("HITANDMIS_CAM");
-// if(cam) {
-// 	if(strcmp(cam, "ikon") == 0)  {
-// 		#include "ikonhelpe.c"
-// 	} else if(strcmp(cam, "pixis") == 0){
-// 		#include "pixishelper.c"
-// 	} else if(strcmp(cam, "vcam") == 0){
-// 		#include "camhelper.c"
-// 	}
-// }
-
-
-//static char * processCommand(char command[]);
 void processCommand(char command[], int sock);
 static void socketHook(int sock);
 static void signalHandler(int signum);
@@ -184,6 +171,8 @@ int main(int argc, char *argv[]) {
 	socklen_t clientlen;
 	struct sockaddr_in server, client;
 	int n, m;
+
+	int portno = 8000;
 	
 	/* Fork off the parent process */
 	pid = fork();
@@ -204,13 +193,17 @@ int main(int argc, char *argv[]) {
 	if (sid < 0) { /* Log the failure */
 			exit(EXIT_FAILURE);
 	} else {
-		 if (argc < 2) {
-		 	portChar = getenv("CAMDAEMON_PORT");
-		 	syslog(LOG_INFO,"no port provided, using %s", portChar);
-		 } else {
-		 	portChar = argv[1];
-		 }
+		 // if (argc < 2) {
+		 // 	portChar = getenv("CAMDAEMON_PORT");
+		 // 	syslog(LOG_INFO,"no port provided, using %s", portChar);
+		 // } else {
+		 // 	portChar = argv[1];
+		 // }
+
+		 syslog(LOG_INFO,"camdaemon starting on port %i", portno);
 	}
+
+	
 	
 	/* Change the current working directory */
 	if ((chdir("/")) < 0) { /* Log the failure */
@@ -232,7 +225,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	bzero((char *) &server, sizeof(server));
-	portno = atoi(portChar);
+	//portno = atoi(portChar);
+
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = htons(portno);

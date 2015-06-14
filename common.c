@@ -129,12 +129,15 @@ extern struct config readConfig(){
         parameterStr = strtok(line, "=");
         valStr = strtok(NULL, "\n");
         if (strcmp(parameterStr, "CAMDAEMON_SITE") == 0){
+            SITENAME = valStr;
             configObj.configSite = (char *)malloc(strlen(valStr));
             strcpy(configObj.configSite, valStr);
         } else if (strcmp(parameterStr, "CAMDAEMON_CAM") == 0){
+            FILTER = valStr;
             configObj.configCam = (char *)malloc(strlen(valStr));
             strcpy(configObj.configCam, valStr);
         } else if (strcmp(parameterStr, "CAMDAEMON_PATH") == 0){
+            LOCATION = valStr;
             configObj.configPath = (char *)malloc(strlen(valStr));
             strcpy(configObj.configPath, valStr);
 
