@@ -44,7 +44,7 @@ extern int initCamera(){
 	NUMCOADDS = 1;
 	SITENAME = "NA";
 	FILTER = "NA";
-	LOCATION = "/home/kuravih/";
+	LOCATION = "/media/backup/data/";
 
 	// char *siteName, *camName, *path;
 	// siteName = getenv("HITANDMIS_SITE");
