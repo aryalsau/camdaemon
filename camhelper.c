@@ -46,16 +46,16 @@ extern int initCamera(){
 	FILTER = "NA";
 	LOCATION = "/home/kuravih/";
 
-	char *siteName, *camName, *path;
-	siteName = getenv("HITANDMIS_SITE");
-	camName = getenv("HITANDMIS_CAM");
-	path = getenv("HITANDMIS_PATH");
-	if(siteName)
-		SITENAME = siteName;
-	if(camName)
-		FILTER = camName;
-	if(path)
-		LOCATION = path;
+	// char *siteName, *camName, *path;
+	// siteName = getenv("HITANDMIS_SITE");
+	// camName = getenv("HITANDMIS_CAM");
+	// path = getenv("HITANDMIS_PATH");
+	// if(siteName)
+	// 	SITENAME = siteName;
+	// if(camName)
+	// 	FILTER = camName;
+	// if(path)
+	// 	LOCATION = path;
 
 	syslog(LOG_INFO, "Initialising %s...\n",camName);
 	
@@ -74,6 +74,7 @@ extern char * capture(long expTimems){
 	WAITTIMEMS  = 60000;
 	TEMPERATURE = -60.0;
 
+	struct config configObj = readConfig();
 	struct filepath filePath = filePathString();
 
 	struct stat st = {0};
