@@ -131,6 +131,7 @@ extern char * preview(long expTimems, int sock){
 	WAITTIMEMS  = 60000;
 	TEMPERATURE = -60.0;
 
+	struct config configObj = readConfig();
 	struct filepath filePath = filePathString();
 
 	struct stat st = {0};
