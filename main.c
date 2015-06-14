@@ -84,65 +84,6 @@ static int split(char str[], char * strArray[]) {
 	return i;
 }
 
-// static char * processCommand(char command[]) {
-// 	static const char pcaptureComm[] = "preview";
-// 	static const char captureComm[] = "capture";
-// 	static const char stopdComm[] = "stopd";
-
-// 	char * commBuffer[5];
-// 	int commSize;
-
-// 	char * commandResponse;
-
-// 	if (strstr(command,captureComm) != NULL){
-// 		commSize = split(command,commBuffer);
-// 		commandResponse = capture(strtol(commBuffer[1],NULL,0));
-// 	} else if (strstr(command,pcaptureComm) != NULL){
-// 		commSize = split(command,commBuffer);
-// 		commandResponse = preview(strtol(commBuffer[1],NULL,0));
-// 	} else if (strstr(command,stopdComm) != NULL){
-// 		commSize = split(command,commBuffer);
-// 		commandResponse = stopDaemon();
-// 	} else {
-// 		commandResponse = "invalid command";
-// 	}
-
-// 	return commandResponse;
-
-// }
-
-// static void socketHook(int sock) {
-
-// 	int n;
-
-// 	char * response;
-
-// 	char rx_buffer[256];
-// 	char comm_buffer[256];
-// 	char tx_buffer[256];
-
-// 	bzero(rx_buffer,256);
-// 	bzero(comm_buffer,256);
-// 	n = read(sock,rx_buffer,255);
-// 	memcpy(comm_buffer, rx_buffer, strlen(rx_buffer)+1);
-// 	bzero(rx_buffer,256);
-
-// 	if (n < 0)
-// 		exitError("ERROR reading from socket");
-
-// 	response = processCommand(comm_buffer);
-// 	memcpy(tx_buffer, response, strlen(response)+1);
-	
-// 	n = write(sock,tx_buffer,strlen(response));
-// 	if (n < 0) {
-// 		perror("ERROR writing to socket");
-// 		exit(1);
-// 	}
-
-// 	bzero(comm_buffer,256);
-// }
-
-
 void processCommand(char command[], int sock) {
 	static const char pcaptureComm[] = "preview";
 	static const char captureComm[] = "capture";
@@ -264,9 +205,6 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 	} else {
 		 if (argc < 2) {
-			 //exitError("ERROR, no port provided");
-			 //exit(EXIT_FAILURE);
-		 	
 		 	portChar = getenv("CAMDAEMON_PORT");
 		 	syslog(LOG_INFO,"no port provided, using %s", portChar);
 		 } else {

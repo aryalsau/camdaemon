@@ -112,3 +112,36 @@ extern struct filepath filePathString() {
 }
 
 
+extern struct config readConfig(){
+    struct config configObj;
+
+    FILE *cfgFilePtr;
+    cfgFilePtr = fopen("config.cfg" , "r");
+    if(cfgFilePtr == NULL) {
+        perror("Error opening file");
+    }
+
+    int lineSize = 256;
+    char line[lineSize];
+    char *parameterStr;
+    char *valStr;
+    while( fgets (line, lineSize, cfgFilePtr)!=NULL ) {
+        parameterStr = strtok(line, "=");
+        valStr = strtok(NULL, "\n");
+        if (strcmp(parameterStr, "CAMDAEMON_SITE") == 0){
+            configObj.configSite = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configSite, valStr);
+        } else if (strcmp(parameterStr, "CAMDAEMON_CAM") == 0){
+            configObj.configCam = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configCam, valStr);
+        } else if (strcmp(parameterStr, "CAMDAEMON_PATH") == 0){
+            configObj.configPath = (char *)malloc(strlen(valStr));
+            strcpy(configObj.configPath, valStr);
+
+        }
+    }
+    fclose(cfgFilePtr);
+
+    return configObj;
+}
+

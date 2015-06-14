@@ -43,3 +43,7 @@ extern struct header{
 static struct filepath{
     char *folderpathptr, *filenameptr, *fullpathptr;
 };
+
+static struct config{
+    char *configSite, *configCam, *configPath;
+};
