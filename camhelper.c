@@ -114,6 +114,8 @@ extern char * capture(long expTimems){
 
 	fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
 
+	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+
 	fclose( data );
 
 	return filePath.fullpathptr;
@@ -176,6 +178,8 @@ extern char * preview(long expTimems, int sock){
 	frame = (uns16*)malloc(size);
 
 	fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+
+	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
 	n = write(sock,frame,2*size/sizeof(uns16));
 	if (n < 0) {
