@@ -12,8 +12,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-//#include "pixishelper.c"
-#include "camhelper.c"
+//#include "camhelper.c"
+#include "pixishelper.c"
+// #include "andorhelper.c"
+
 
 void processCommand(char command[], int sock);
 static void socketHook(int sock);

@@ -13,11 +13,14 @@ RM = rm
 
 all: $(TARGET)
 
+virtual:
+	$(CC) $(CFLAGS) $(TARGET) main.c $(COMLIBS) $(INCLUDES)
+
 pixis:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(COMLIBS) $(PVCAMLIB) $(INCLUDES)
+	$(CC) $(CFLAGS) $(TARGET) main.c $(PVCAMLIB) $(COMLIBS) $(INCLUDES)
 
 andor:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(COMLIBS) $(ANDORLIB) $(PVCAMLIB) $(INCLUDES)
+	$(CC) $(CFLAGS) $(TARGET) main.c $(ANDORLIB) $(COMLIBS) $(INCLUDES)
 
 clear:
 	$(RM) $(TARGET)
