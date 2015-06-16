@@ -262,6 +262,8 @@ extern char * capture(long expTimems){
 
     fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
 
+    syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+
     fclose( data );
     if( ptrHeader ) free( ptrHeader );
     if( frame ) free( frame );
@@ -334,6 +336,8 @@ extern char * preview(long expTimems, int sock){
     AcquireStandard(camHandle,frame);
 
     fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+
+    syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
     n = write(sock,frame,2*size);
     if (n < 0) {
