@@ -31,7 +31,7 @@ char * LOCATION;
 extern int initCamera(){
 	// will allways do full frame captures
 	// so these entries never change so why even have them?
-	
+
 	XDIM = 1024;
 	YDIM = 1024;
 	XBIN = 1;
@@ -58,7 +58,7 @@ extern int initCamera(){
 	// 	LOCATION = path;
 
 	syslog(LOG_INFO, "Initialising camdaemon...\n");
-	
+
 	return 1;
 }
 
@@ -190,6 +190,8 @@ extern char * preview(long expTimems, int sock){
 	}
 
 	fclose( data );
+	if( ptrHeader ) free( ptrHeader );
+    if( frame ) free( frame );
 
 	return filePath.fullpathptr;
 }
