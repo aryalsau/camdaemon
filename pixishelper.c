@@ -3,6 +3,7 @@
 //sudo gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 // external interfaces
 extern int initCamera();
+extern int uninitCamera();
 extern char * capture(long expTime);
 extern char * preview(long expTimems, int sock);
 
@@ -88,8 +89,8 @@ static void set_any_param( int16 hCam, uns32 param_id, void *param_value ) {
         b_status = pl_get_param( hCam, param_id, ATTR_ACCESS, (void*)&param_access );
         if( param_access == ACC_READ_WRITE || param_access == ACC_WRITE_ONLY ) {
             if( !pl_set_param( hCam, param_id, param_value) ) {
-                syslog(LOG_INFO, "error: param did not get set\n" );                 
-            } 
+                syslog(LOG_INFO, "error: param did not get set\n" );
+            }
         }else {
             syslog(LOG_INFO, "error: param is not writable\n" );
         }
@@ -107,8 +108,8 @@ static void get_any_param( int16 hCam, uns32 param_id, void *param_value ) {
         b_status = pl_get_param( hCam, param_id, ATTR_ACCESS, (void*)&param_access );
         if( param_access == ACC_READ_WRITE || param_access == ACC_READ_ONLY ) {
             if( !pl_get_param( hCam, param_id, ATTR_CURRENT, param_value ) ) {
-                syslog(LOG_INFO, "error: param couldnt be not be read\n" );                 
-            } 
+                syslog(LOG_INFO, "error: param couldnt be not be read\n" );
+            }
         }else {
             syslog(LOG_INFO, "error: param is not readable\n" );
         }
@@ -339,6 +340,12 @@ extern char * preview(long expTimems, int sock){
 
     syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
+    n = write(sock,ptrHeader,headerSize);
+    if (n < 0) {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
+
     n = write(sock,frame,2*size);
     if (n < 0) {
         perror("ERROR writing to socket");
@@ -396,11 +403,11 @@ static void AcquireStandard( int16 hCam, uns16 * frameBuffer){
         syslog(LOG_INFO, "Data collection error: %i\n", pl_error_code() );
     }
 
-    
+
 
     /* Finish the sequence */
     pl_exp_finish_seq( hCam, frameBuffer, 0);
-    
+
     /*Uninit the sequence */
     pl_exp_uninit_seq();
 
