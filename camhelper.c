@@ -117,6 +117,8 @@ extern char * capture(long expTimems){
 	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
 	fclose( data );
+    if( ptrHeader ) free( ptrHeader );
+    if( frame ) free( frame );
 
 	return filePath.fullpathptr;
 }
