@@ -2,7 +2,7 @@
 //gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 
 //top -p $(pgrep -d',' camdaemon)
-//tail -f /var/log/syslog to top by name
+//tail -f /var/log/syslog
 #ifdef __GNUC__
 #  if(__GNUC__ > 3 || __GNUC__ ==3)
 #	define _GNUC3_
