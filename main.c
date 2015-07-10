@@ -13,8 +13,8 @@
 #include <netinet/in.h>
 
 //#include "camhelper.c"
-#include "pixishelper.c"
-// #include "andorhelper.c"
+// #include "pixishelper.c"
+#include "ikonhelper.c"
 
 
 void processCommand(char command[], int sock);
@@ -144,7 +144,7 @@ static void socketHook(int sock) {
 	processCommand(comm_buffer,sock);
 
 	bzero(comm_buffer,256);
-	
+
 }
 
 static char * stopDaemon() {
@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
 	signal(SIGTERM, signalHandler);
 	signal(SIGKILL, signalHandler);
 	signal(SIGSEGV, signalHandler);
-		
+
 	/* Our process ID and Session ID */
 	pid_t pid, sid;
 
@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
 	int n, m;
 
 	portno = 8000;
-	
+
 	/* Fork off the parent process */
 	pid = fork();
 	if (pid < 0) { /* Log the failure */
@@ -186,8 +186,8 @@ int main(int argc, char *argv[]) {
 
 	/* Change the file mode mask */
 	umask(0);
-			
-	/* Open any logs here */        
+
+	/* Open any logs here */
 
 	char *portChar;
 	/* Create a new SID for the child process */
@@ -205,18 +205,18 @@ int main(int argc, char *argv[]) {
 		 syslog(LOG_INFO,"camdaemon starting on port %i", portno);
 	}
 
-	
-	
+
+
 	/* Change the current working directory */
 	if ((chdir("/")) < 0) { /* Log the failure */
 			exit(EXIT_FAILURE);
 	}
-	
+
 	/* Close out the standard file descriptors */
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
-	
+
 	/* Daemon-specific initialization goes here */
 
 	/* here is more socket stuff */

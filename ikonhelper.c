@@ -52,7 +52,7 @@ int selectCamera (int iNumArgs, char *szArgList[]) {
 		return 0;
 }
 
-int initCamera(int argc, char *argv[]) {
+int initCamera() {
 		XDIM = 1024;
 		YDIM = 1024;
 		XBIN = 1;
@@ -70,10 +70,10 @@ int initCamera(int argc, char *argv[]) {
 		unsigned long error;
 		int width, height;
 
-		if (selectCamera (argc, argv) < 0) {
-				syslog(LOG_INFO,"CAMERA SELECTION ERROR");
-				return -1;
-		}
+		// if (selectCamera (argc, argv) < 0) {
+		// 		syslog(LOG_INFO,"CAMERA SELECTION ERROR");
+		// 		return -1;
+		// }
 		//Initialize CCD
 		error = Initialize("/usr/local/etc/andor");
 		if(error!=DRV_SUCCESS){
@@ -82,13 +82,13 @@ int initCamera(int argc, char *argv[]) {
 		}
 		sleep(2); //sleep to allow initialization to complete
 		CoolerON();
-		SetTemperature(-30);
+		SetTemperature(-50);
 		//Set Read Mode to --Image--
 		SetReadMode(4);
 		//Set Acquisition mode to --Single scan--
 		SetAcquisitionMode(1);
 		//Set initial exposure time
-		SetExposureTime((float)(EXPTIME/1000));
+		SetExposureTime(0.0100);
 		//Get Detector dimensions
 		GetDetector(&XDIM, &YDIM);
 		//Initialize Shutter
@@ -96,6 +96,10 @@ int initCamera(int argc, char *argv[]) {
 		//Setup Image dimensions
 		SetImage(1,1,1,XDIM,1,YDIM);
 		return 0;
+}
+
+extern int uninitCamera(){
+	ShutDown();
 }
 
 int getTemperature() {
@@ -117,6 +121,8 @@ extern char * capture(long expTimems){
 
 		getTemp = getTemperature();
 
+		syslog(LOG_INFO, "Temperature is %f c\n", (float)getTemp);
+
 		EXPTIMEMS = expTimems;
 		WAITTIMEMS  = 60000;
 		TEMPERATURE = (float)getTemp/100;
@@ -150,11 +156,15 @@ extern char * capture(long expTimems){
     uns16 * frame;
     frame = (uns16*)malloc( size *2 );
 
-		SetExposureTime((float)(EXPTIME/1000));
+		SetExposureTime((float)(EXPTIMEMS/1000));
 
 		StartAcquisition();
 
 		GetDetector(&XDIM, &YDIM);
+
+		const uns32 size = XDIM*YDIM;
+		unsigned short * frame;
+    frame = (unsigned short*)malloc( size *2 );
 
 		int snapstatus;
 		at_32 *imageData [ XDIM*YDIM ];
@@ -166,101 +176,107 @@ extern char * capture(long expTimems){
 				GetStatus(&snapstatus);
 		}
 
-		GetAcquiredData(*imageData, XDIM*YDIM);
+		GetAcquiredData16(frame, (unsigned long)size);
 
-		//SaveAsBmp("/home/kuravih/Dropbox/Exchange/socketDaemon/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
+		//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
 
-		fwrite( imageData, sizeof(uns16), 2*size/sizeof(uns16), data );
+		fwrite( frame, sizeof(uns16), (size_t)size, data );
 
 		syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
 		fclose( data );
 		if( ptrHeader ) free( ptrHeader );
-		if( imageData ) free( imageData );
+		if( frame ) free( frame );
 
 		return filePath.fullpathptr;
 }
 
 
 extern char * preview(long expTimems, int sock){
-		int n;
+	int n;
 
-		int16 getTemp;
+	int16 getTemp;
 
-		getTemp = getTemperature();
+	getTemp = getTemperature();
 
-		EXPTIMEMS = expTimems;
-		WAITTIMEMS  = 60000;
-		TEMPERATURE = (float)getTemp/100;
+	syslog(LOG_INFO, "Temperature is %f c\n", (float)getTemp);
 
-		struct config configObj = readConfig();
-		struct filepath filePath = filePathString();
+	EXPTIMEMS = expTimems;
+	WAITTIMEMS  = 60000;
+	TEMPERATURE = (float)getTemp/100;
 
-		struct stat st = {0};
-		if (stat(filePath.folderpathptr, &st) == -1) {
-				mkdir(filePath.folderpathptr, 0700);
-		}
+	struct config configObj = readConfig();
+	struct filepath filePath = filePathString();
 
-		FILE *data;
-		data = fopen( filePath.fullpathptr , "w" );
-		if( !data ) {
-				syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
-				return 0;
-		}
+	struct stat st = {0};
+	if (stat(filePath.folderpathptr, &st) == -1) {
+			mkdir(filePath.folderpathptr, 0700);
+	}
 
-		struct header imageHeader = buildHeader();
+	FILE *data;
+	data = fopen( filePath.fullpathptr , "w" );
+	if( !data ) {
+			syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
+			return 0;
+	}
 
-		uns8 * ptrHeader;
-    const int headerSize = 128;
-    ptrHeader = (uns8*)malloc(headerSize);
-    copyHeader(imageHeader,ptrHeader);
-    fwrite( ptrHeader, 1, headerSize, data);
+	struct header imageHeader = buildHeader();
 
-    sleep(ceil((float)expTimems/1000));
+	uns8 * ptrHeader;
+  const int headerSize = 128;
+  ptrHeader = (uns8*)malloc(headerSize);
+  copyHeader(imageHeader,ptrHeader);
+  fwrite( ptrHeader, 1, headerSize, data);
+
+  sleep(ceil((float)expTimems/1000));
 
     const uns32 size = 1024*1024;
     uns16 * frame;
     frame = (uns16*)malloc( size *2 );
 
-		SetExposureTime((float)(EXPTIME/1000));
+	SetExposureTime((float)(EXPTIMEMS/1000));
 
-		StartAcquisition();
+	StartAcquisition();
 
-		GetDetector(&XDIM, &YDIM);
+	GetDetector(&XDIM, &YDIM);
 
-		int snapstatus;
+	const uns32 size = XDIM*YDIM;
+	unsigned short * frame;
+	frame = (unsigned short*)malloc( size *2 );
+
+	int snapstatus;
 		at_32 *imageData [ XDIM*YDIM ];
 
-		//Loop until acquisition finished
-		GetStatus(&snapstatus);
+	//Loop until acquisition finished
+	GetStatus(&snapstatus);
 
-		while(snapstatus==DRV_ACQUIRING) {
-				GetStatus(&snapstatus);
-		}
+	while(snapstatus==DRV_ACQUIRING) {
+			GetStatus(&snapstatus);
+	}
 
-		GetAcquiredData(*imageData, XDIM*YDIM);
+	GetAcquiredData16(frame, (unsigned long)size);
 
-		//SaveAsBmp("/home/kuravih/Dropbox/Exchange/socketDaemon/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
+	//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
 
-		fwrite( imageData, sizeof(uns16), 2*size/sizeof(uns16), data );
+	fwrite( frame, sizeof(uns16), (size_t)size, data );
 
-		syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
-		n = write(sock,ptrHeader,headerSize);
-		if (n < 0) {
-				perror("ERROR writing to socket");
-				exit(1);
-		}
+	n = write(sock,ptrHeader,headerSize);
+	if (n < 0) {
+			perror("ERROR writing to socket");
+			exit(1);
+	}
 
-		n = write(sock,imageData,2*size);
-		if (n < 0) {
-				perror("ERROR writing to socket");
-				exit(1);
-		}
+	n = write(sock,frame,2*size);
+	if (n < 0) {
+			perror("ERROR writing to socket");
+			exit(1);
+	}
 
-		fclose( data );
-		if( ptrHeader ) free( ptrHeader );
-		if( imageData ) free( imageData );
+	fclose( data );
+	if( ptrHeader ) free( ptrHeader );
+	if( frame ) free( frame );
 
-		return filePath.fullpathptr;
+	return filePath.fullpathptr;
 }

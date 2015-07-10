@@ -19,7 +19,7 @@ virtual:
 pixis:
 	$(CC) $(CFLAGS) $(TARGET) main.c $(PVCAMLIB) $(COMLIBS) $(INCLUDES)
 
-andor:
+ikon:
 	$(CC) $(CFLAGS) $(TARGET) main.c $(ANDORLIB) $(COMLIBS) $(INCLUDES)
 
 clear:

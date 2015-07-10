@@ -52,7 +52,7 @@ static void setROI( rgn_type* roi, uns16 s1, uns16 s2, uns16 sbin, uns16 p1, uns
 
 static void printROI( int16 roi_count, rgn_type* roi ) {
     int i;
-    
+
     for( i = 0; i < roi_count; i++ ) {
         syslog(LOG_INFO, "ROI %i set to { %i, %i, %i, %i, %i, %i }\n", i, roi[i].s1, roi[i].s2, roi[i].sbin, roi[i].p1, roi[i].p2, roi[i].pbin );
     }
@@ -60,7 +60,7 @@ static void printROI( int16 roi_count, rgn_type* roi ) {
 
 static void setFullFrame( int16 hcam, rgn_type* roi ) {
     uns16 param;
-    
+
     roi->s1 = 0;
     pl_get_param( hcam, PARAM_SER_SIZE, ATTR_DEFAULT, (void *)&param );
     roi->s2 = param-1;
@@ -138,7 +138,7 @@ static void setADC( int16 hcam, uns32 port, int16 adc_index, int16 gain ) {
 extern int initCamera(){
     // will allways do full frame captures
     // so these entries never change so why even have them?
-    
+
     XDIM = 1024;
     YDIM = 1024;
     XBIN = 1;
@@ -175,7 +175,7 @@ extern int initCamera(){
     } else {
         syslog(LOG_INFO, "pvcam lib initialized\n" );
     }
-        
+
     if( pl_cam_get_name( cam_selection, cam_name ) ) {
         syslog(LOG_INFO, "camname for cam 0 is %s\n", cam_name );
     } else {
@@ -192,10 +192,10 @@ extern int initCamera(){
         exit( 0 );
     }
 
-    int16 setTemp = -3500;
+    int16 setTemp = -5000;
     set_any_param(camHandle, PARAM_TEMP_SETPOINT, &setTemp );
     syslog(LOG_INFO, "Initialising camdaemon...\n");
-    
+
     return 1;
 }
 
@@ -206,7 +206,7 @@ extern int uninitCamera(){
 }
 
 extern char * capture(long expTimems){
-    
+
     int16 num_frames;
     int16 getTemp;
     get_any_param(camHandle, PARAM_TEMP, &getTemp);
@@ -214,6 +214,8 @@ extern char * capture(long expTimems){
     EXPTIMEMS = expTimems;
     WAITTIMEMS  = 60000;
     TEMPERATURE = (float)getTemp/100;
+
+    syslog(LOG_INFO, "Temperature is %f c\n", TEMPERATURE);
 
     struct config configObj = readConfig();
     struct filepath filePath = filePathString();
@@ -261,7 +263,7 @@ extern char * capture(long expTimems){
 
     AcquireStandard(camHandle,frame);
 
-    fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+    fwrite( frame, sizeof(uns16), (size_t)size, data );
 
     syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
@@ -275,7 +277,7 @@ extern char * capture(long expTimems){
 
 extern char * preview(long expTimems, int sock){
     int n;
-    
+
     int16 num_frames;
     int16 getTemp;
     get_any_param(camHandle, PARAM_TEMP, &getTemp);
@@ -336,7 +338,7 @@ extern char * preview(long expTimems, int sock){
 
     AcquireStandard(camHandle,frame);
 
-    fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+    fwrite( frame, sizeof(uns16), (size_t)size, data );
 
     syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
@@ -369,10 +371,10 @@ static void AcquireStandard( int16 hCam, uns16 * frameBuffer){
     int16 status;
     uns32 not_needed;
     uns32 exp_time = EXPTIMEMS;
-    
+
     region = malloc( sizeof( rgn_type ) );
     setFullFrame( hCam, region );
-    
+
     /* Init a sequence set the region, exposure mode and exposure time */
     if( pl_exp_init_seq() ) {
         syslog(LOG_INFO, "experiment sequence initialized\n" );
