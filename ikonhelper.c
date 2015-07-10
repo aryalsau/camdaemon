@@ -152,10 +152,6 @@ extern char * capture(long expTimems){
 
     sleep(ceil((float)expTimems/1000));
 
-    const uns32 size = 1024*1024;
-    uns16 * frame;
-    frame = (uns16*)malloc( size *2 );
-
 		SetExposureTime((float)(EXPTIMEMS/1000));
 
 		StartAcquisition();
@@ -167,8 +163,6 @@ extern char * capture(long expTimems){
     frame = (unsigned short*)malloc( size *2 );
 
 		int snapstatus;
-		at_32 *imageData [ XDIM*YDIM ];
-
 		//Loop until acquisition finished
 		GetStatus(&snapstatus);
 
@@ -180,7 +174,7 @@ extern char * capture(long expTimems){
 
 		//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
 
-		fwrite( frame, sizeof(uns16), (size_t)size, data );
+		fwrite( frame, sizeof(unsigned short), (size_t)size, data );
 
 		syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
@@ -230,10 +224,6 @@ extern char * preview(long expTimems, int sock){
 
   sleep(ceil((float)expTimems/1000));
 
-    const uns32 size = 1024*1024;
-    uns16 * frame;
-    frame = (uns16*)malloc( size *2 );
-
 	SetExposureTime((float)(EXPTIMEMS/1000));
 
 	StartAcquisition();
@@ -245,8 +235,6 @@ extern char * preview(long expTimems, int sock){
 	frame = (unsigned short*)malloc( size *2 );
 
 	int snapstatus;
-		at_32 *imageData [ XDIM*YDIM ];
-
 	//Loop until acquisition finished
 	GetStatus(&snapstatus);
 
@@ -258,7 +246,7 @@ extern char * preview(long expTimems, int sock){
 
 	//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
 
-	fwrite( frame, sizeof(uns16), (size_t)size, data );
+	fwrite( frame, sizeof(unsigned short), (size_t)size, data );
 
 	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
