@@ -125,7 +125,7 @@ extern char * capture(long expTimems){
 
 		EXPTIMEMS = expTimems;
 		WAITTIMEMS  = 60000;
-		TEMPERATURE = (float)getTemp/100;
+	TEMPERATURE = (float)getTemp;
 
 		struct config configObj = readConfig();
 		struct filepath filePath = filePathString();
@@ -197,7 +197,7 @@ extern char * preview(long expTimems, int sock){
 
 	EXPTIMEMS = expTimems;
 	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)getTemp/100;
+	TEMPERATURE = (float)getTemp;
 
 	struct config configObj = readConfig();
 	struct filepath filePath = filePathString();
