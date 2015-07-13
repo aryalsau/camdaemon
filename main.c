@@ -14,7 +14,7 @@
 
 //#include "camhelper.c"
 //#include "pixishelper.c"
-#include "ikonhelper.c"
+#include "camhelper.c"
 
 
 void processCommand(char command[], int sock);

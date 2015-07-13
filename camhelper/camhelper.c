@@ -1,4 +1,4 @@
-#include "common.c"
+#include "../common.c"
 
 
 // external interfaces

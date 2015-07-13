@@ -1,4 +1,4 @@
-#include "common.c"
+#include "../common.c"
 #include "pvcam.h"
 //sudo gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 // external interfaces

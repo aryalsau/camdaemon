@@ -1,5 +1,5 @@
 #include "atmcdLXd.h"
-#include "common.c"
+#include "../common.c"
 #include <stdio.h>
 #include <unistd.h>
 
