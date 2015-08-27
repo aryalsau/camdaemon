@@ -12,10 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-//#include "camhelper.c"
-//#include "pixishelper.c"
 #include "camhelper.c"
-
 
 void processCommand(char command[], int sock);
 static void socketHook(int sock);
@@ -195,13 +192,6 @@ int main(int argc, char *argv[]) {
 	if (sid < 0) { /* Log the failure */
 			exit(EXIT_FAILURE);
 	} else {
-		 // if (argc < 2) {
-		 // 	portChar = getenv("CAMDAEMON_PORT");
-		 // 	syslog(LOG_INFO,"no port provided, using %s", portChar);
-		 // } else {
-		 // 	portChar = argv[1];
-		 // }
-
 		 syslog(LOG_INFO,"camdaemon starting on port %i", portno);
 	}
 
@@ -227,7 +217,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	bzero((char *) &server, sizeof(server));
-	//portno = atoi(portChar);
 
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
