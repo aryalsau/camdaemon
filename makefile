@@ -17,7 +17,7 @@ RM = rm
 all: $(TARGET)
 
 virtual:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(PVCAMLIB) $(COMLIBS) -I$(COMDIR) -I$(VCAMDIR)
+	$(CC) $(CFLAGS) $(TARGET) server.c $(PVCAMLIB) $(COMLIBS) -I$(COMDIR) -I$(VCAMDIR)
 
 pixis:
 	$(CC) $(CFLAGS) $(TARGET) main.c $(PVCAMLIB) $(COMLIBS) -I$(COMDIR) -I$(PIXISDIR)

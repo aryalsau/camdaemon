@@ -79,7 +79,7 @@ extern struct config readConfig(){
     struct config configObj;
 
     FILE *cfgFilePtr;
-    cfgFilePtr = fopen("/home/pixis/camdaemon/config.cfg" , "r");
+    cfgFilePtr = fopen("config.cfg" , "r");
     if(cfgFilePtr == NULL) {
         perror("Error opening file");
     }
@@ -141,7 +141,7 @@ extern struct filepath filePathString() {
     strftime(monthName,4,"%^b", timeInfo);
     MONTH = monthName;
     FILENAME = fileNameExtPtr;
-    
+
     // freeing any of these give an error
     // free(timeInfo);
     // free(fileNamePtr);
@@ -149,5 +149,3 @@ extern struct filepath filePathString() {
 
     return filePath;
 }
-
-

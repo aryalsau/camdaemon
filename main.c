@@ -1,6 +1,5 @@
 //sudo gcc -o camdaemon main.c -landor -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
 //gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
-
 //top -p $(pgrep -d',' camdaemon)
 //tail -f /var/log/syslog
 #ifdef __GNUC__
