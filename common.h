@@ -1,4 +1,5 @@
 #include "master.h"
+#include <getopt.h>
 #include <stdlib.h>
 #include <syslog.h>
 #include <stdio.h>
@@ -14,7 +15,7 @@
 extern int XDIM;
 extern int YDIM;
 extern int DAY;
-extern int YEAR; 
+extern int YEAR;
 extern int XBIN;
 extern int YBIN;
 extern int NUMSUBARRAYS;
