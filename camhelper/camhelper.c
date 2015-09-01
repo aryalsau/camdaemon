@@ -3,6 +3,7 @@
 
 // external interfaces
 extern int initCamera();
+extern int uninitCamera();
 extern char * capture(long expTime);
 extern char * preview(long expTimems, int sock);
 
@@ -44,7 +45,7 @@ extern int initCamera(){
 	NUMCOADDS = 1;
 	SITENAME = "NA";
 	FILTER = "NA";
-	LOCATION = "/media/backup/data/";
+	LOCATION = "data/";
 
 	// char *siteName, *camName, *path;
 	// siteName = getenv("HITANDMIS_SITE");

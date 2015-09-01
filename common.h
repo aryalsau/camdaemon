@@ -11,6 +11,7 @@
 #include <string.h>
 #include <math.h>
 #include <errno.h>
+#include <fcntl.h>
 
 extern int XDIM;
 extern int YDIM;

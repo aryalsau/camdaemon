@@ -18,10 +18,11 @@ static void socketHook(int sock);
 static void signalHandler(int signum);
 static char * parseIpAddress(int address);
 static void exitError(const char *msg);
-static char * stopDaemon();
+static char * stopDaemon(int sock);
 static char * restartDaemon();
 
 int verbose = 0;
+int loop = 1;
 
 static void exitError(const char *msg) {
   int errsv = errno;
@@ -129,7 +130,7 @@ void processCommand(char command[], int sock) {
     if (verbose)
       printf("stopd command received. stopping camdaemon...\n");
 
-		commandResponse = stopDaemon();
+		commandResponse = stopDaemon(sock);
 
 		n = write(sock,commandResponse,strlen(commandResponse));
 		if (n < 0) {
@@ -180,11 +181,11 @@ static void socketHook(int sock) {
 
 }
 
-static char * stopDaemon() {
+static char * stopDaemon(int sock) {
 	char * stopResponse;
 	stopResponse = "stopping camdaemon";
 	uninitCamera();
-	exit(EXIT_SUCCESS);
+  loop = 0;
 	return stopResponse;
 }
 
@@ -195,8 +196,10 @@ void printUsage() {
 int main(int argc , char *argv[]) {
 
   int option = 0;
-  verbose = 0;
   char errMsgBuffer[80];
+  int iSetOption = 1;
+
+  sleep(1);
 
   int portno = 8000;
 
@@ -214,7 +217,6 @@ int main(int argc , char *argv[]) {
         exitError(errMsgBuffer);
     }
   }
-
 
 
   signal(SIGUSR1, signalHandler);
@@ -270,6 +272,7 @@ int main(int argc , char *argv[]) {
 
   /* here is more socket stuff */
   socketfd = socket(AF_INET, SOCK_STREAM, 0);
+  // fcntl(socketfd, F_SETFL, O_NONBLOCK);
   if (socketfd < 0) {
     exitError("ERROR opening socket");
     exit(EXIT_FAILURE);
@@ -284,15 +287,22 @@ int main(int argc , char *argv[]) {
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = INADDR_ANY;
   server.sin_port = htons(portno);
+  setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iSetOption, sizeof(iSetOption));
+
   if (bind(socketfd, (struct sockaddr *) &server,sizeof(server)) < 0) {
+    syslog(LOG_INFO,"ERROR on binding to port %d", portno);
+    if (verbose)
+      printf("ERROR on binding to port %d\n",portno);
     exitError("ERROR on binding");
     exit(EXIT_FAILURE);
   }
 
+
+
   initCamera();
 
 	listen(socketfd,5);
-  while (1) {
+  do {
 
 		clientlen = sizeof(client);
 		newsocketfd = accept(socketfd, (struct sockaddr *) &client,  &clientlen);
@@ -317,7 +327,12 @@ int main(int argc , char *argv[]) {
     }
 		close(newsocketfd);
 
-	}
+	} while (loop);
+
+
+
+
+
 
   if (shutdown(socketfd, SHUT_RDWR) < 0) {
     exitError("ERROR shutting down socket");
@@ -328,5 +343,5 @@ int main(int argc , char *argv[]) {
       printf("camdaemon port %d shutting down\n", portno);
   }
   close(socketfd);
-	exit(EXIT_SUCCESS);
+	return 0;
 }
