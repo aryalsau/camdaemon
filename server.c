@@ -164,18 +164,27 @@ void printUsage() {
 int main(int argc , char *argv[]) {
 
   int option = 0;
-  int verbose;
+  int verbose = 0;
   char errMsgBuffer[80];
 
-  while ((option = getopt(argc, argv,":v")) != -1) {
+  int portno = 8000;
+
+  while ((option = getopt(argc, argv,"vp:")) != -1) {
     switch (option) {
-      case 'v' : verbose = 1;
-      break;
-      default: printUsage();
-      sprintf(errMsgBuffer, "Unknown Option : %s", option);
-      exitError(errMsgBuffer);
+      case 'v' :
+        verbose = 1;
+        break;
+      case 'p' :
+        portno = atoi(optarg);
+        break;
+      default:
+        printUsage();
+        sprintf(errMsgBuffer, "Unknown Option : %s", argv[1]);
+        exitError(errMsgBuffer);
     }
   }
+
+
 
   signal(SIGUSR1, signalHandler);
   signal(SIGUSR2, signalHandler);
@@ -186,12 +195,11 @@ int main(int argc , char *argv[]) {
 
   /* here is the socket */
   int socketfd, newsocketfd;
-  int portno;
   socklen_t clientlen;
   struct sockaddr_in server, client;
   int n, m;
 
-  portno = 8000;
+
 
 
 
@@ -234,6 +242,10 @@ int main(int argc , char *argv[]) {
   if (socketfd < 0) {
     exitError("ERROR opening socket");
     exit(EXIT_FAILURE);
+  } else {
+    syslog(LOG_INFO,"camdaemon started on port %d", portno);
+    if (verbose)
+      printf("camdaemon started on port %d\n",portno);
   }
 
   bzero((char *) &server, sizeof(server));
@@ -250,6 +262,7 @@ int main(int argc , char *argv[]) {
 
 	listen(socketfd,5);
   while (1) {
+
 		clientlen = sizeof(client);
 		newsocketfd = accept(socketfd, (struct sockaddr *) &client,  &clientlen);
 		if (newsocketfd < 0) {
@@ -258,10 +271,9 @@ int main(int argc , char *argv[]) {
 		}
 
 		syslog(LOG_INFO,"%s connected", parseIpAddress(client.sin_addr.s_addr));
-
 		socketHook(newsocketfd);
 		close(newsocketfd);
-
 	}
+  close(socketfd);
 	exit(EXIT_SUCCESS);
 }
