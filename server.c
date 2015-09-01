@@ -100,7 +100,12 @@ void processCommand(char command[], int sock) {
 
 	if (strstr(command,captureComm) != NULL){
 		commSize = split(command,commBuffer);
+
 		commandResponse = capture(strtol(commBuffer[1],NULL,0));
+
+    syslog( LOG_INFO, "capture command received. writing file : %s\n",commandResponse);
+    if (verbose)
+      printf("capture command received. writing file : %s\n",commandResponse);
 
 		n = write(sock,commandResponse,strlen(commandResponse));
 		if (n < 0) {
@@ -110,10 +115,20 @@ void processCommand(char command[], int sock) {
 
 	} else if (strstr(command,previewComm) != NULL){
 		commSize = split(command,commBuffer);
+
+    syslog( LOG_INFO, "preview command received. sending data...\n");
+    if (verbose)
+      printf("preview command received. sending data...\n");
+
 		commandResponse = preview(strtol(commBuffer[1],NULL,0),sock);
 
 	} else if (strstr(command,stopdComm) != NULL){
 		commSize = split(command,commBuffer);
+
+    syslog( LOG_INFO, "stopd command received. stopping camdaemon...\n");
+    if (verbose)
+      printf("stopd command received. stopping camdaemon...\n");
+
 		commandResponse = stopDaemon();
 
 		n = write(sock,commandResponse,strlen(commandResponse));
@@ -123,6 +138,11 @@ void processCommand(char command[], int sock) {
 		}
 
 	} else {
+
+    syslog( LOG_INFO, "Invalid command received.\n");
+    if (verbose)
+      printf("Invalid command received.\n");
+
 		commandResponse = "invalid command";
 
 		n = write(sock,commandResponse,strlen(commandResponse));
@@ -163,10 +183,6 @@ static void socketHook(int sock) {
 static char * stopDaemon() {
 	char * stopResponse;
 	stopResponse = "stopping camdaemon";
-	syslog( LOG_INFO, "stopd Received. Stopping camdaemon...\n");
-  if (verbose)
-    printf("stopd Received. Stopping camdaemon...\n");
-
 	uninitCamera();
 	exit(EXIT_SUCCESS);
 	return stopResponse;
@@ -295,9 +311,9 @@ int main(int argc , char *argv[]) {
       exitError("ERROR shutting down connection");
       exit(EXIT_FAILURE);
     } else {
-      syslog(LOG_INFO,"connection on port %d shutting down", portno);
+      syslog(LOG_INFO,"%s disconnected", parseIpAddress(client.sin_addr.s_addr));
       if (verbose)
-        printf("connection on port %d shutting down\n", portno);
+        printf("%s disconnected\n", parseIpAddress(client.sin_addr.s_addr));
     }
 		close(newsocketfd);
 
