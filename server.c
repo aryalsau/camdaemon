@@ -21,6 +21,8 @@ static void exitError(const char *msg);
 static char * stopDaemon();
 static char * restartDaemon();
 
+int verbose = 0;
+
 static void exitError(const char *msg) {
   int errsv = errno;
   if (errno){
@@ -35,22 +37,32 @@ static void signalHandler(int signum) {
 	switch ( signum ) {
 		case SIGKILL:
 			syslog( LOG_INFO, "SIGKILL Received... \n");
+      if (verbose)
+        printf("SIGKILL Received... \n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGTERM:
 			syslog( LOG_INFO, "SIGTERM Received... \n");
+      if (verbose)
+        printf("SIGTERM Received... \n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGUSR1:
 			syslog( LOG_INFO, "SIGUSR1 Received... \n");
+      if (verbose)
+        printf("SIGUSR1 Received... \n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGUSR2:
 			syslog( LOG_INFO, "SIGUSR2 Received... \n");
+      if (verbose)
+        printf("SIGUSR2 Received... \n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGSEGV:
 			syslog( LOG_INFO, "SIGSEGV Received... \n");
+      if (verbose)
+        printf("SIGSEGV Received... \n");
 			exit(EXIT_SUCCESS);
 			break;
 	}
@@ -152,6 +164,9 @@ static char * stopDaemon() {
 	char * stopResponse;
 	stopResponse = "stopping camdaemon";
 	syslog( LOG_INFO, "stopd Received. Stopping camdaemon...\n");
+  if (verbose)
+    printf("stopd Received. Stopping camdaemon...\n");
+
 	uninitCamera();
 	exit(EXIT_SUCCESS);
 	return stopResponse;
@@ -164,7 +179,7 @@ void printUsage() {
 int main(int argc , char *argv[]) {
 
   int option = 0;
-  int verbose = 0;
+  verbose = 0;
   char errMsgBuffer[80];
 
   int portno = 8000;
@@ -271,16 +286,18 @@ int main(int argc , char *argv[]) {
 		}
 
 		syslog(LOG_INFO,"%s connected", parseIpAddress(client.sin_addr.s_addr));
+    if (verbose)
+      printf("%s connected\n", parseIpAddress(client.sin_addr.s_addr));
 
 		socketHook(newsocketfd);
-    
+
     if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
       exitError("ERROR shutting down connection");
       exit(EXIT_FAILURE);
     } else {
       syslog(LOG_INFO,"connection on port %d shutting down", portno);
       if (verbose)
-        printf("connection on port %d shutting down", portno);
+        printf("connection on port %d shutting down\n", portno);
     }
 		close(newsocketfd);
 
@@ -292,7 +309,7 @@ int main(int argc , char *argv[]) {
   } else {
     syslog(LOG_INFO,"camdaemon port %d shutting down", portno);
     if (verbose)
-      printf("camdaemon port %d shutting down", portno);
+      printf("camdaemon port %d shutting down\n", portno);
   }
   close(socketfd);
 	exit(EXIT_SUCCESS);
