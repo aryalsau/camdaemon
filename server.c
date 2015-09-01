@@ -271,9 +271,15 @@ int main(int argc , char *argv[]) {
 		}
 
 		syslog(LOG_INFO,"%s connected", parseIpAddress(client.sin_addr.s_addr));
+
 		socketHook(newsocketfd);
+
+    shutdown(newsocketfd, SHUT_RDWR)
 		close(newsocketfd);
+
 	}
+
+  shutdown(socketfd, SHUT_RDWR)
   close(socketfd);
 	exit(EXIT_SUCCESS);
 }
