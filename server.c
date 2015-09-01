@@ -273,13 +273,27 @@ int main(int argc , char *argv[]) {
 		syslog(LOG_INFO,"%s connected", parseIpAddress(client.sin_addr.s_addr));
 
 		socketHook(newsocketfd);
-
-    shutdown(newsocketfd, SHUT_RDWR)
+    
+    if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
+      exitError("ERROR shutting down connection");
+      exit(EXIT_FAILURE);
+    } else {
+      syslog(LOG_INFO,"connection on port %d shutting down", portno);
+      if (verbose)
+        printf("connection on port %d shutting down", portno);
+    }
 		close(newsocketfd);
 
 	}
 
-  shutdown(socketfd, SHUT_RDWR)
+  if (shutdown(socketfd, SHUT_RDWR) < 0) {
+    exitError("ERROR shutting down socket");
+    exit(EXIT_FAILURE);
+  } else {
+    syslog(LOG_INFO,"camdaemon port %d shutting down", portno);
+    if (verbose)
+      printf("camdaemon port %d shutting down", portno);
+  }
   close(socketfd);
 	exit(EXIT_SUCCESS);
 }
