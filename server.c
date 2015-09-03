@@ -104,9 +104,10 @@ void processCommand(char command[], int sock) {
 
 		commandResponse = capture(strtol(commBuffer[1],NULL,0));
 
-    syslog( LOG_INFO, "capture command received. writing file : %s\n",commandResponse);
+    syslog( LOG_INFO, "capture command received.");
+    syslog( LOG_INFO, "writing file : %s",commandResponse);
     if (verbose)
-      printf("capture command received. writing file : %s\n",commandResponse);
+      printf("capture command received.\nwriting file : %s\n",commandResponse);
 
 		n = write(sock,commandResponse,strlen(commandResponse));
 		if (n < 0) {
@@ -117,18 +118,20 @@ void processCommand(char command[], int sock) {
 	} else if (strstr(command,previewComm) != NULL){
 		commSize = split(command,commBuffer);
 
-    syslog( LOG_INFO, "preview command received. sending data...\n");
+    syslog( LOG_INFO, "preview command received.");
+    syslog( LOG_INFO, "sending data...");
     if (verbose)
-      printf("preview command received. sending data...\n");
+      printf("preview command received.\nsending data...\n");
 
 		commandResponse = preview(strtol(commBuffer[1],NULL,0),sock);
 
 	} else if (strstr(command,stopdComm) != NULL){
 		commSize = split(command,commBuffer);
 
-    syslog( LOG_INFO, "stopd command received. stopping camdaemon...\n");
+    syslog( LOG_INFO, "stopd command received.");
+    syslog( LOG_INFO, "stopping camdaemon...\n");
     if (verbose)
-      printf("stopd command received. stopping camdaemon...\n");
+      printf("stopd command received.\nstopping camdaemon...\n");
 
 		commandResponse = stopDaemon(sock);
 

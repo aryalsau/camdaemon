@@ -81,7 +81,8 @@ extern struct config readConfig(){
     FILE *cfgFilePtr;
     cfgFilePtr = fopen("config.cfg" , "r");
     if(cfgFilePtr == NULL) {
-        perror("Error opening file");
+        perror("Error opening file config.cfg");
+        syslog( LOG_INFO, "Error opening file config.cfg\n");
     }
 
     int lineSize = 256;
