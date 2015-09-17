@@ -2,7 +2,7 @@
 
 
 extern struct header buildHeader();
-extern void copyHeader(struct header headerStruct, uns8 *ptrFileHeader);
+extern void copyHeader(struct header headerStruct, unsigned char *ptrFileHeader);
 extern struct filepath filePathString();
 extern struct config readConfig();
 
@@ -52,7 +52,7 @@ extern struct header buildHeader(){
     return headerStruct;
 }
 
-extern void copyHeader(struct header headerStruct, uns8 *ptrFileHeader) {
+extern void copyHeader(struct header headerStruct, unsigned char *ptrFileHeader) {
     memcpy(&ptrFileHeader[0], &headerStruct.xdim, 2);
     memcpy(&ptrFileHeader[2], &headerStruct.ydim, 2);
     memcpy(&ptrFileHeader[36], &headerStruct.day, 2);

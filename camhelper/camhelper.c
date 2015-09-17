@@ -68,8 +68,8 @@ extern int uninitCamera(){
 }
 
 extern char * capture(long expTimems){
-	int16 hCam;
-	int16 num_frames;
+	short hCam;
+	short num_frames;
 
 	EXPTIMEMS = expTimems;
 	WAITTIMEMS  = 60000;
@@ -101,19 +101,19 @@ extern char * capture(long expTimems){
 	// syslog(LOG_INFO, "filter %s\n", imageHeader.filter);
 	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
 
-	uns8 * ptrHeader;
+	unsigned char * ptrHeader;
 	const int headerSize = 128;
-	ptrHeader = (uns8*)malloc(headerSize);
+	ptrHeader = (unsigned char*)malloc(headerSize);
 	copyHeader(imageHeader,ptrHeader);
 	fwrite( ptrHeader, 1, headerSize, data);
 
 	sleep(ceil(imageHeader.expTime));
 
-	const uns32 size = 1024*1024;
-	uns16 * frame;
-	frame = (uns16*)malloc(size);
+	const unsigned long size = 1024*1024;
+	unsigned short * frame;
+	frame = (unsigned short*)malloc(size);
 
-	fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+	fwrite( frame, sizeof(unsigned short), 2*size/sizeof(unsigned short), data );
 
 	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
@@ -129,8 +129,8 @@ extern char * capture(long expTimems){
 extern char * preview(long expTimems, int sock){
 	int n;
 
-	int16 hCam;
-	int16 num_frames;
+	short hCam;
+	short num_frames;
 
 	EXPTIMEMS = expTimems;
 	WAITTIMEMS  = 60000;
@@ -162,9 +162,9 @@ extern char * preview(long expTimems, int sock){
 	// syslog(LOG_INFO, "filter %s\n", imageHeader.filter);
 	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
 
-	uns8 * ptrHeader;
+	unsigned char * ptrHeader;
 	const int headerSize = 128;
-	ptrHeader = (uns8*)malloc(headerSize);
+	ptrHeader = (unsigned char*)malloc(headerSize);
 	copyHeader(imageHeader,ptrHeader);
 	fwrite( ptrHeader, 1, headerSize, data);
 
@@ -176,15 +176,15 @@ extern char * preview(long expTimems, int sock){
 
 	sleep(ceil(imageHeader.expTime));
 
-	const uns32 size = 1024*1024;
-	uns16 * frame;
-	frame = (uns16*)malloc(size);
+	const unsigned long size = 1024*1024;
+	unsigned short * frame;
+	frame = (unsigned short*)malloc(size);
 
-	fwrite( frame, sizeof(uns16), 2*size/sizeof(uns16), data );
+	fwrite( frame, sizeof(unsigned short), 2*size/sizeof(unsigned short), data );
 
 	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
 
-	n = write(sock,frame,2*size/sizeof(uns16));
+	n = write(sock,frame,2*size/sizeof(unsigned short));
 	if (n < 0) {
 		perror("ERROR writing to socket");
 		exit(1);

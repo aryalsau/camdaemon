@@ -123,7 +123,7 @@ static void socketHook(int sock) {
 
 	int n;
 
-	uns16 * response;
+	unsigned short * response;
 
 	char rx_buffer[256];
 	char comm_buffer[256];

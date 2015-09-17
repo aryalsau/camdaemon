@@ -117,7 +117,7 @@ int getTemperature() {
 
 extern char * capture(long expTimems){
 
-	int16 getTemp;
+	short getTemp;
 
 	getTemp = getTemperature();
 
@@ -144,9 +144,9 @@ extern char * capture(long expTimems){
 
 	struct header imageHeader = buildHeader();
 
-	uns8 * ptrHeader;
+	unsigned char * ptrHeader;
 	const int headerSize = 128;
-	ptrHeader = (uns8*)malloc(headerSize);
+	ptrHeader = (unsigned char *)malloc(headerSize);
 	copyHeader(imageHeader,ptrHeader);
 	fwrite( ptrHeader, 1, headerSize, data);
 
@@ -158,7 +158,7 @@ extern char * capture(long expTimems){
 
 	GetDetector(&XDIM, &YDIM);
 
-	const uns32 size = XDIM*YDIM;
+	const unsigned long size = XDIM*YDIM;
 	unsigned short * frame;
 	frame = (unsigned short*)malloc( size *2 );
 
@@ -189,7 +189,7 @@ extern char * capture(long expTimems){
 extern char * preview(long expTimems, int sock){
 	int n;
 
-	int16 getTemp;
+	short getTemp;
 
 	getTemp = getTemperature();
 
@@ -216,9 +216,9 @@ extern char * preview(long expTimems, int sock){
 
 	struct header imageHeader = buildHeader();
 
-	uns8 * ptrHeader;
+	unsigned char * ptrHeader;
 	const int headerSize = 128;
-	ptrHeader = (uns8*)malloc(headerSize);
+	ptrHeader = (unsigned char *)malloc(headerSize);
 	copyHeader(imageHeader,ptrHeader);
 	fwrite( ptrHeader, 1, headerSize, data);
 
@@ -230,7 +230,7 @@ extern char * preview(long expTimems, int sock){
 
 	GetDetector(&XDIM, &YDIM);
 
-	const uns32 size = XDIM*YDIM;
+	const unsigned long size = XDIM*YDIM;
 	unsigned short * frame;
 	frame = (unsigned short*)malloc( size *2 );
 

@@ -1,4 +1,3 @@
-#include "master.h"
 #include <getopt.h>
 #include <stdlib.h>
 #include <syslog.h>
@@ -35,17 +34,17 @@ extern char * FILTER;
 
 extern char * LOCATION;
 
-extern struct header{
-    uns16 xdim, ydim, day, year, xbin, ybin, numSubarrays, left, right, bottom1, top1, numCoadds;
+struct header{
+    unsigned short xdim, ydim, day, year, xbin, ybin, numSubarrays, left, right, bottom1, top1, numCoadds;
     float expTime, waitTime; //seconds
     float temperature;
     char *siteName, *filename, *month, *filter;
 };
 
-static struct filepath{
+struct filepath{
     char *folderpathptr, *filenameptr, *fullpathptr;
 };
 
-static struct config{
+struct config{
     char *configSite, *configCam, *configPath;
 };
