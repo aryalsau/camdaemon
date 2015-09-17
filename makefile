@@ -17,13 +17,13 @@ RM = rm
 all: $(TARGET)
 
 virtual:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(COMLIBS) -I$(VCAMDIR)
+	$(CC) $(CFLAGS) $(TARGET) server.c $(COMLIBS) -I$(VCAMDIR)
 
 pixis:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(PVCAMLIB) $(COMLIBS) -I$(PVCAMDIR) -I$(PIXISDIR)
+	$(CC) $(CFLAGS) $(TARGET) server.c $(PVCAMLIB) $(COMLIBS) -I$(PVCAMDIR) -I$(PIXISDIR)
 
 ikon:
-	$(CC) $(CFLAGS) $(TARGET) main.c $(ANDORLIB) $(COMLIBS) -I$(IKONDIR)
+	$(CC) $(CFLAGS) $(TARGET) server.c $(ANDORLIB) $(COMLIBS) -I$(IKONDIR)
 
 clear:
 	$(RM) $(TARGET)

@@ -164,7 +164,7 @@ static void socketHook(int sock) {
 
 	int n;
 
-	uns16 * response;
+	unsigned short * response;
 
 	char rxBuffer[256];
 	char commBuffer[256];
