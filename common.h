@@ -39,6 +39,7 @@ struct header{
 	float exp_time, wait_time; //seconds
 	float temperature;
 	char *site_name, *filename, *month, *filter;
+	double acceleration[3], field[3];
 };
 
 struct file_path{
