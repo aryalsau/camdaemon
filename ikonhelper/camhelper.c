@@ -4,14 +4,14 @@
 #include <unistd.h>
 
 // external interfaces
-extern int initCamera();
-extern int uninitCamera();
-extern char * capture(long expTimems);
-extern char * preview(long expTimems, int sock);
+extern int init_camera();
+extern int uninit_camera();
+extern char * capture(long exp_time_ms);
+extern char * preview(long exp_time_ms, int socket);
 
 // internal function
-int selectCamera (int iNumArgs, char *szArgList[]);
-int getTemperature();
+int select_camera (int num_args, char *arg_list[]);
+int get_temperature();
 
 int XDIM;
 int YDIM;
@@ -35,24 +35,24 @@ char * FILTER;
 
 char * LOCATION;
 
-int selectCamera (int iNumArgs, char *szArgList[]) {
-	if (iNumArgs == 2) {
-		at_32 lNumCameras;
-		GetAvailableCameras(&lNumCameras);
-		int iSelectedCamera = atoi(szArgList[1]);
+int select_camera (int num_args, char *arg_list[]) {
+	if (num_args == 2) {
+		at_32 num_cameras;
+		GetAvailableCameras(&num_cameras);
+		int selected_camera = atoi(arg_list[1]);
 
-		if (iSelectedCamera < lNumCameras && iSelectedCamera >= 0) {
-			at_32 lCameraHandle;
-			GetCameraHandle(iSelectedCamera, &lCameraHandle);
-			SetCurrentCamera(lCameraHandle);
-			return iSelectedCamera;
+		if (selected_camera < num_cameras && selected_camera >= 0) {
+			at_32 camera_handle;
+			GetCameraHandle(selected_camera, &camera_handle);
+			SetCurrentCamera(camera_handle);
+			return selected_camera;
 		} else
 			return -1;
 	}
 	return 0;
 }
 
-int initCamera() {
+int init_camera() {
 	XDIM = 1024;
 	YDIM = 1024;
 	XBIN = 1;
@@ -70,7 +70,7 @@ int initCamera() {
 	unsigned long error;
 	int width, height;
 
-	// if (selectCamera (argc, argv) < 0) {
+	// if (select_camera (argc, argv) < 0) {
 	// 		syslog(LOG_INFO,"CAMERA SELECTION ERROR");
 	// 		return -1;
 	// }
@@ -98,59 +98,59 @@ int initCamera() {
 	return 0;
 }
 
-extern int uninitCamera(){
+extern int uninit_camera(){
 	ShutDown();
 }
 
-int getTemperature() {
-	int iTemp, status;
-	status = GetTemperature(&iTemp);
+int get_temperature() {
+	int temperature, status;
+	status = GetTemperature(&temperature);
 	if(status==DRV_TEMPERATURE_OFF) {
-			//syslog( LOG_INFO, "Cooler is OFF, Temperature %d C",iTemp);
+			//syslog( LOG_INFO, "Cooler is OFF, Temperature %d C",temperature);
 	} else if(status==DRV_TEMPERATURE_STABILIZED) {
-			//syslog( LOG_INFO, "Cooler Stabilised, Temperature %d C",iTemp);
+			//syslog( LOG_INFO, "Cooler Stabilised, Temperature %d C",temperature);
 	} else {
-			//syslog( LOG_INFO, "Cooler is ON, Temperature %d C",iTemp);
+			//syslog( LOG_INFO, "Cooler is ON, Temperature %d C",temperature);
 	}
-	return iTemp;
+	return temperature;
 }
 
-extern char * capture(long expTimems){
+extern char * capture(long exp_time_ms){
 
-	short getTemp;
+	short temperature;
 
-	getTemp = getTemperature();
+	temperature = get_temperature();
 
-	syslog(LOG_INFO, "Temperature is %f c\n", (float)getTemp);
+	syslog(LOG_INFO, "Temperature is %f c\n", (float)temperature);
 
-	EXPTIMEMS = expTimems;
+	EXPTIMEMS = exp_time_ms;
 	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)getTemp;
+	TEMPERATURE = (float)temperature;
 
-	struct config configObj = readConfig();
-	struct filepath filePath = filePathString();
+	struct config config_obj = read_config();
+	struct file_path file_path_obj = file_path_string();
 
 	struct stat st = {0};
-	if (stat(filePath.folderpathptr, &st) == -1) {
-			mkdir(filePath.folderpathptr, 0700);
+	if (stat(file_path_obj.folder_path, &st) == -1) {
+			mkdir(file_path_obj.folder_path, 0700);
 	}
 
 	FILE *data;
-	data = fopen( filePath.fullpathptr , "w" );
+	data = fopen( file_path_obj.full_path , "w" );
 	if( !data ) {
-			syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
+			syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
 			return 0;
 	}
 
-	struct header imageHeader = buildHeader();
+	struct header image_header = build_header();
 
-	unsigned char * ptrHeader;
-	const int headerSize = 128;
-	ptrHeader = (unsigned char *)malloc(headerSize);
-	copyHeader(imageHeader,ptrHeader);
-	fwrite( ptrHeader, 1, headerSize, data);
+	unsigned char * header;
+	const int header_size = 128;
+	header = (unsigned char *)malloc(header_size);
+	copy_header(image_header,header);
+	fwrite( header, 1, header_size, data);
 
-	sleep(ceil((float)expTimems/1000));
+	sleep(ceil((float)exp_time_ms/1000));
 
 	SetExposureTime((float)(EXPTIMEMS/1000));
 
@@ -162,12 +162,12 @@ extern char * capture(long expTimems){
 	unsigned short * frame;
 	frame = (unsigned short*)malloc( size *2 );
 
-	int snapstatus;
+	int snap_status;
 	//Loop until acquisition finished
-	GetStatus(&snapstatus);
+	GetStatus(&snap_status);
 
-	while(snapstatus==DRV_ACQUIRING) {
-			GetStatus(&snapstatus);
+	while(snap_status==DRV_ACQUIRING) {
+			GetStatus(&snap_status);
 	}
 
 	GetAcquiredData16(frame, (unsigned long)size);
@@ -176,53 +176,53 @@ extern char * capture(long expTimems){
 
 	fwrite( frame, sizeof(unsigned short), (size_t)size, data );
 
-	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
 
 	fclose( data );
-	if( ptrHeader ) free( ptrHeader );
+	if( header ) free( header );
 	if( frame ) free( frame );
 
-	return filePath.fullpathptr;
+	return file_path_obj.full_path;
 }
 
 
-extern char * preview(long expTimems, int sock){
+extern char * preview(long exp_time_ms, int socket){
 	int n;
 
-	short getTemp;
+	short temperature;
 
-	getTemp = getTemperature();
+	temperature = get_temperature();
 
-	syslog(LOG_INFO, "Temperature is %f c\n", (float)getTemp);
+	syslog(LOG_INFO, "Temperature is %f c\n", (float)temperature);
 
-	EXPTIMEMS = expTimems;
+	EXPTIMEMS = exp_time_ms;
 	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)getTemp;
+	TEMPERATURE = (float)temperature;
 
-	struct config configObj = readConfig();
-	struct filepath filePath = filePathString();
+	struct config config_obj = read_config();
+	struct file_path file_path_obj = file_path_string();
 
 	struct stat st = {0};
-	if (stat(filePath.folderpathptr, &st) == -1) {
-			mkdir(filePath.folderpathptr, 0700);
+	if (stat(file_path_obj.folder_path, &st) == -1) {
+			mkdir(file_path_obj.folder_path, 0700);
 	}
 
 	FILE *data;
-	data = fopen( filePath.fullpathptr , "w" );
+	data = fopen( file_path_obj.full_path , "w" );
 	if( !data ) {
-			syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
+			syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
 			return 0;
 	}
 
-	struct header imageHeader = buildHeader();
+	struct header image_header = build_header();
 
-	unsigned char * ptrHeader;
-	const int headerSize = 128;
-	ptrHeader = (unsigned char *)malloc(headerSize);
-	copyHeader(imageHeader,ptrHeader);
-	fwrite( ptrHeader, 1, headerSize, data);
+	unsigned char * header;
+	const int header_size = 128;
+	header = (unsigned char *)malloc(header_size);
+	copy_header(image_header,header);
+	fwrite( header, 1, header_size, data);
 
-	sleep(ceil((float)expTimems/1000));
+	sleep(ceil((float)exp_time_ms/1000));
 
 	SetExposureTime((float)(EXPTIMEMS/1000));
 
@@ -234,12 +234,12 @@ extern char * preview(long expTimems, int sock){
 	unsigned short * frame;
 	frame = (unsigned short*)malloc( size *2 );
 
-	int snapstatus;
+	int snap_status;
 	//Loop until acquisition finished
-	GetStatus(&snapstatus);
+	GetStatus(&snap_status);
 
-	while(snapstatus==DRV_ACQUIRING) {
-			GetStatus(&snapstatus);
+	while(snap_status==DRV_ACQUIRING) {
+			GetStatus(&snap_status);
 	}
 
 	GetAcquiredData16(frame, (unsigned long)size);
@@ -248,23 +248,23 @@ extern char * preview(long expTimems, int sock){
 
 	fwrite( frame, sizeof(unsigned short), (size_t)size, data );
 
-	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
 
-	n = write(sock,ptrHeader,headerSize);
+	n = write(socket,header,header_size);
 	if (n < 0) {
 			perror("ERROR writing to socket");
 			exit(1);
 	}
 
-	n = write(sock,frame,2*size);
+	n = write(socket,frame,2*size);
 	if (n < 0) {
 			perror("ERROR writing to socket");
 			exit(1);
 	}
 
 	fclose( data );
-	if( ptrHeader ) free( ptrHeader );
+	if( header ) free( header );
 	if( frame ) free( frame );
 
-	return filePath.fullpathptr;
+	return file_path_obj.full_path;
 }

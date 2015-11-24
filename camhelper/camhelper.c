@@ -2,10 +2,10 @@
 
 
 // external interfaces
-extern int initCamera();
-extern int uninitCamera();
-extern char * capture(long expTime);
-extern char * preview(long expTimems, int sock);
+extern int init_camera();
+extern int uninit_camera();
+extern char * capture(long exp_time);
+extern char * preview(long exp_time_ms, int sock);
 
 int XDIM;
 int YDIM;
@@ -19,7 +19,7 @@ int RIGHT;
 int TOP1;
 int BOTTOM1;
 int NUMCOADDS;
-long EXPTIMEMS;
+long EXP_tIMEMS;
 long WAITTIMEMS;
 float TEMPERATURE;
 char * SITENAME;
@@ -29,7 +29,7 @@ char * FILTER;
 
 char * LOCATION;
 
-extern int initCamera(){
+extern int init_camera(){
 	// will allways do full frame captures
 	// so these entries never change so why even have them?
 
@@ -63,51 +63,49 @@ extern int initCamera(){
 	return 1;
 }
 
-extern int uninitCamera(){
+extern int uninit_camera(){
     return 0;
 }
 
-extern char * capture(long expTimems){
-	short hCam;
+extern char * capture(long exp_time_ms){
+	short cam_handle;
 	short num_frames;
 
-	EXPTIMEMS = expTimems;
+	EXPTIMEMS = exp_time_ms;
 	WAITTIMEMS  = 60000;
 	TEMPERATURE = -60.0;
 
-	struct config configObj = readConfig();
-	struct filepath filePath = filePathString();
+	struct config config_obj = read_config();
+	struct file_path file_path_obj = file_path_string();
 
 	struct stat st = {0};
-	if (stat(filePath.folderpathptr, &st) == -1) {
-	    mkdir(filePath.folderpathptr, 0700);
-	}
+	if (stat(file_path_obj.folder_path, &st) == -1) mkdir(file_path_obj.folder_path, 0700);
 
 	FILE *data;
-	data = fopen( filePath.fullpathptr , "w" );
+	data = fopen( file_path_obj.full_path , "w" );
 	if( !data ) {
-		syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
+		syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
 		return 0;
 	}
 
-	struct header imageHeader = buildHeader();
+	struct header image_header = build_header();
 
-	// syslog(LOG_INFO, "expTime %f\n", imageHeader.expTime);
-	// syslog(LOG_INFO, "day %d\n", imageHeader.day);
-	// syslog(LOG_INFO, "month %s\n", imageHeader.month);
-	// syslog(LOG_INFO, "year %d\n", imageHeader.year);
-	// syslog(LOG_INFO, "filename %s\n", imageHeader.filename);
-	// syslog(LOG_INFO, "siteName %s\n", imageHeader.siteName);
-	// syslog(LOG_INFO, "filter %s\n", imageHeader.filter);
+	// syslog(LOG_INFO, "exp_time %f\n", image_header.exp_time);
+	// syslog(LOG_INFO, "day %d\n", image_header.day);
+	// syslog(LOG_INFO, "month %s\n", image_header.month);
+	// syslog(LOG_INFO, "year %d\n", image_header.year);
+	// syslog(LOG_INFO, "filename %s\n", image_header.filename);
+	// syslog(LOG_INFO, "siteName %s\n", image_header.siteName);
+	// syslog(LOG_INFO, "filter %s\n", image_header.filter);
 	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
 
-	unsigned char * ptrHeader;
-	const int headerSize = 128;
-	ptrHeader = (unsigned char*)malloc(headerSize);
-	copyHeader(imageHeader,ptrHeader);
-	fwrite( ptrHeader, 1, headerSize, data);
+	unsigned char * header;
+	const int header_size = 128;
+	header = (unsigned char*)malloc(header_size);
+	copy_header(image_header,header);
+	fwrite( header, 1, header_size, data);
 
-	sleep(ceil(imageHeader.expTime));
+	sleep(ceil(image_header.exp_time));
 
 	const unsigned long size = 1024*1024;
 	unsigned short * frame;
@@ -115,66 +113,64 @@ extern char * capture(long expTimems){
 
 	fwrite( frame, sizeof(unsigned short), 2*size/sizeof(unsigned short), data );
 
-	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
 
 	fclose( data );
-    if( ptrHeader ) free( ptrHeader );
-    if( frame ) free( frame );
+	if( header ) free( header );
+	if( frame ) free( frame );
 
-	return filePath.fullpathptr;
+	return file_path_obj.full_path;
 }
 
 
 
-extern char * preview(long expTimems, int sock){
+extern char * preview(long exp_time_ms, int sock){
 	int n;
 
-	short hCam;
+	short cam_handle;
 	short num_frames;
 
-	EXPTIMEMS = expTimems;
+	EXPTIMEMS = exp_time_ms;
 	WAITTIMEMS  = 60000;
 	TEMPERATURE = -60.0;
 
-	struct config configObj = readConfig();
-	struct filepath filePath = filePathString();
+	struct config config_obj = read_config();
+	struct file_path file_path_obj = file_path_string();
 
 	struct stat st = {0};
-	if (stat(filePath.folderpathptr, &st) == -1) {
-	    mkdir(filePath.folderpathptr, 0700);
-	}
+	if (stat(file_path_obj.folder_path, &st) == -1) mkdir(file_path_obj.folder_path, 0700);
 
 	FILE *data;
-	data = fopen( filePath.fullpathptr , "w" );
+	data = fopen( file_path_obj.full_path , "w" );
 	if( !data ) {
-		syslog(LOG_INFO, "%s not opened error\n", filePath.fullpathptr);
+		syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
 		return 0;
 	}
 
-	struct header imageHeader = buildHeader();
+	struct header image_header = build_header();
 
-	// syslog(LOG_INFO, "expTime %f\n", imageHeader.expTime);
-	// syslog(LOG_INFO, "day %d\n", imageHeader.day);
-	// syslog(LOG_INFO, "month %s\n", imageHeader.month);
-	// syslog(LOG_INFO, "year %d\n", imageHeader.year);
-	// syslog(LOG_INFO, "filename %s\n", imageHeader.filename);
-	// syslog(LOG_INFO, "siteName %s\n", imageHeader.siteName);
-	// syslog(LOG_INFO, "filter %s\n", imageHeader.filter);
+	// syslog(LOG_INFO, "exp_time %f\n", image_header.exp_time);
+	// syslog(LOG_INFO, "day %d\n", image_header.day);
+	// syslog(LOG_INFO, "month %s\n", image_header.month);
+	// syslog(LOG_INFO, "year %d\n", image_header.year);
+	// syslog(LOG_INFO, "filename %s\n", image_header.filename);
+	// syslog(LOG_INFO, "siteName %s\n", image_header.siteName);
+	// syslog(LOG_INFO, "filter %s\n", image_header.filter);
 	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
 
-	unsigned char * ptrHeader;
-	const int headerSize = 128;
-	ptrHeader = (unsigned char*)malloc(headerSize);
-	copyHeader(imageHeader,ptrHeader);
-	fwrite( ptrHeader, 1, headerSize, data);
+	unsigned char * header;
+	const int header_size = 128;
+	header = (unsigned char*)malloc(header_size);
+	copy_header(image_header,header);
+	fwrite( header, 1, header_size, data);
 
-	n = write(sock,ptrHeader,headerSize);
+	n = write(sock,header,header_size);
 	if (n < 0) {
 		perror("ERROR writing to socket");
 		exit(1);
 	}
 
-	sleep(ceil(imageHeader.expTime));
+	sleep(ceil(image_header.exp_time));
 
 	const unsigned long size = 1024*1024;
 	unsigned short * frame;
@@ -182,7 +178,7 @@ extern char * preview(long expTimems, int sock){
 
 	fwrite( frame, sizeof(unsigned short), 2*size/sizeof(unsigned short), data );
 
-	syslog(LOG_INFO, "%s created\n", filePath.fullpathptr);
+	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
 
 	n = write(sock,frame,2*size/sizeof(unsigned short));
 	if (n < 0) {
@@ -191,8 +187,8 @@ extern char * preview(long expTimems, int sock){
 	}
 
 	fclose( data );
-	if( ptrHeader ) free( ptrHeader );
-    if( frame ) free( frame );
+	if( header ) free( header );
+	if( frame ) free( frame );
 
-	return filePath.fullpathptr;
+	return file_path_obj.full_path;
 }
