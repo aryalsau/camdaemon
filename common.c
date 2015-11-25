@@ -48,7 +48,7 @@ extern struct file_path file_path_string() {
 	time_t raw_time;
 	struct tm *time_info;
 	time(&raw_time);
-	time_info = localtime(&raw_time);
+	time_info = gmtime(&raw_time);
 
 	file_path_object.filename = (char *)malloc(18);
 	strftime(file_path_object.filename, 18,"img%H%M%S_%j.fits", time_info);

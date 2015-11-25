@@ -26,12 +26,6 @@ extern char * capture(long exp_time_ms){
 	data_object.ydim = 32;
 	data_object.xbin = 1;
 	data_object.ybin = 1;
-	data_object.num_subarrays = 1;
-	data_object.left = 0;
-	data_object.right = 1024;
-	data_object.bottom1 = 0;
-	data_object.top1 = 1024;
-	data_object.num_coadds = 1;
 	data_object.exp_time_ms = exp_time_ms;
 	data_object.temperature = -60.0;
 
