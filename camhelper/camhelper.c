@@ -8,28 +8,6 @@ extern char * capture(long exp_time);
 extern char * write_file(struct data data_obj, char *location);
 extern char * preview(long exp_time_ms, int sock);
 
-int XDIM;
-int YDIM;
-int DAY;
-int YEAR;
-int XBIN;
-int YBIN;
-int NUMSUBARRAYS;
-int LEFT;
-int RIGHT;
-int TOP1;
-int BOTTOM1;
-int NUMCOADDS;
-long EXP_tIMEMS;
-long WAITTIMEMS;
-float TEMPERATURE;
-char * SITENAME;
-char * FILENAME;
-char * MONTH;
-char * FILTER;
-
-char * LOCATION;
-
 extern int init_camera(){
 
 	syslog(LOG_INFO, "Initialising camdaemon...\n");

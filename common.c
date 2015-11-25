@@ -60,7 +60,7 @@ extern struct file_path file_path_string() {
 
 extern short ** dyanmically_allocate(short xdim, short ydim, int type_size){
 	short **image;
-	image = malloc(xdim*type_size);
+	image = (short **)malloc(xdim*type_size);
 	short i;
 	for (i = 0; i < xdim; i++) {
 		image[i] = malloc(ydim*type_size);
