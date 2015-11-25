@@ -29,7 +29,7 @@ extern char * write_file(struct data data_obj, char *location){
 	struct stat st = {0};
 	if (stat(location, &st) == -1) mkdir(location, 0700);
 
-	char * full_path = (char *)malloc( strlen(location) + strlen(data_obj.filename) + 1);
+	char * full_path = (char *)malloc( strlen(location)+strlen(data_obj.filename)+2);
 	sprintf(full_path, "%s/%s", location, data_obj.filename);
 
 	fitsfile *fptr;       /* pointer to the FITS file; defined in fitsio.h */
@@ -92,7 +92,7 @@ extern char * capture(long exp_time_ms){
 
 	sleep(ceil(data_obj.exp_time_ms/1000));
 
-	char * location = (char *)malloc( strlen(config_obj.path) + strlen(file_path_obj.folder_name) + 2);
+	char * location = (char *)malloc(strlen(config_obj.path)+strlen(file_path_obj.folder_name)+2);
 	sprintf(location, "%s/%s", config_obj.path, file_path_obj.folder_name);
 	return write_file(data_obj, location);
 }
