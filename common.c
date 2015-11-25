@@ -49,13 +49,11 @@ extern struct file_path file_path_string() {
 	time(&raw_time);
 	time_info = localtime(&raw_time);
 
-	char * filename = (char *)malloc(14);
-	strftime(filename, 20,"img%H%M%S_%j.fits", time_info);
-	file_path_obj.filename = filename;
+	file_path_obj.filename = (char *)malloc(20);
+	strftime(file_path_obj.filename, 20,"img%H%M%S_%j.fits", time_info);
 
-	char * folder_name = (char *)malloc(9);
-	strftime(folder_name,8,"%b%d%y", time_info);
-	file_path_obj.folder_name = folder_name;
+	file_path_obj.folder_name = (char *)malloc(8);
+	strftime(file_path_obj.folder_name,8,"%b%d%y", time_info);
 
 	return file_path_obj;
 }
