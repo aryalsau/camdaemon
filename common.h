@@ -44,17 +44,17 @@ struct header{
 };
 
 struct file_path{
-	char *folder_path, *filename, *full_path;
+	char *folder_name, *filename;
 };
 
 struct config{
-	char *config_site, *config_cam, *config_path;
+	char *site, *camera, *path;
 };
 
 struct data{
 	unsigned short xdim, ydim, xbin, ybin, num_subarrays, left, right, bottom1, top1, num_coadds;
 	long exp_time_ms;
 	float temperature;
-	char *site_name, *filename, *camera;
-	short *image;
+	char *site, *filename, *camera;
+	short **image;
 };
