@@ -11,6 +11,7 @@
 #include <math.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fitsio.h>
 
 extern int XDIM;
 extern int YDIM;
@@ -48,4 +49,12 @@ struct file_path{
 
 struct config{
 	char *config_site, *config_cam, *config_path;
+};
+
+struct data{
+	unsigned short xdim, ydim, xbin, ybin, num_subarrays, left, right, bottom1, top1, num_coadds;
+	long exp_time_ms;
+	float temperature;
+	char *site_name, *filename, *camera;
+	short *image;
 };

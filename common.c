@@ -120,7 +120,7 @@ extern struct file_path file_path_string() {
 	time_info = localtime(&raw_time);
 
 	char * filename_ext = (char *)malloc(14);
-	strftime(filename_ext,14,"L%H%M%SA.%j", time_info);
+	strftime(filename_ext, 18,"L%H%M%S_%j.fits", time_info);
 
 	file_path_obj.filename = filename_ext;
 
