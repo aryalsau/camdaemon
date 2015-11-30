@@ -34,6 +34,9 @@ extern char * MONTH;
 extern char * FILTER;
 
 extern char * LOCATION;
+extern char * PATH;
+extern char * FOLDER_NAME;
+extern char * FILENAME;
 
 struct header{
 	unsigned short xdim, ydim, day, year, xbin, ybin, num_subarrays, left, right, bottom1, top1, num_coadds;
@@ -54,7 +57,8 @@ struct config{
 struct data{
 	unsigned short xdim, ydim, xbin, ybin, num_subarrays, left, right, bottom1, top1, num_coadds;
 	long exp_time_ms;
-	float temperature;
-	char *site, *filename, *camera;
+	float temp_c;
+	struct tm *time_info;
+	struct config config_object;
 	short **image;
 };

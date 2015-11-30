@@ -6,7 +6,7 @@ extern void copy_header(struct header header_struct, unsigned char *ptr_filehead
 extern struct file_path file_path_string();
 extern struct config read_config();
 extern short ** dyanmically_allocate(short xdim, short ydim, int type_size);
-extern char * write_file(struct data data_object, char *location);
+extern char * write_file(struct data data_object, char *location, char *filename);
 
 extern struct config read_config(){
 
@@ -41,6 +41,15 @@ extern struct config read_config(){
 	return config_object;
 }
 
+extern struct file_path time_info_to_file_path(struct tm *time_info){
+	struct file_path file_path_object;
+	file_path_object.filename = (char *)malloc(19);
+	strftime(file_path_object.filename, 19,"img%j_%H%M%S.fits", time_info);
+	file_path_object.folder_name = (char *)malloc(8);
+	strftime(file_path_object.folder_name,8,"%b%d%y", time_info);
+	return file_path_object;
+}
+
 extern struct file_path file_path_string() {
 
 	struct file_path file_path_object;
@@ -68,7 +77,7 @@ extern short ** dyanmically_allocate(short xdim, short ydim, int type_size){
 	return image;
 }
 
-extern char * write_file(struct data data_object, char *location){
+extern char * write_file(struct data data_object, char *location, char *filename){
 	int status;
 	long nelements = data_object.xdim*data_object.ydim;
 	long naxis = 2;
@@ -78,8 +87,8 @@ extern char * write_file(struct data data_object, char *location){
 	struct stat st = {0};
 	if (stat(location, &st) == -1) mkdir(location, 0700);
 
-	char * full_path = (char *)malloc( strlen(location)+strlen(data_object.filename)+1);
-	sprintf(full_path, "%s/%s", location, data_object.filename);
+	char * full_path = (char *)malloc( strlen(location)+strlen(filename)+1);
+	sprintf(full_path, "%s/%s", location, filename);
 
 	fitsfile *fptr;       /* pointer to the FITS file; defined in fitsio.h */
 
@@ -90,12 +99,16 @@ extern char * write_file(struct data data_object, char *location){
 	fits_update_key(fptr, TLONG, "EXPOSURE", &data_object.exp_time_ms, "Total Exposure Time", &status);
 	fits_write_key_unit(fptr, "EXPOSURE", "ms", &status);
 
-	fits_update_key(fptr, TFLOAT, "TEMPERATURE", &data_object.temperature, "Camera Temperature", &status);
+	fits_update_key(fptr, TFLOAT, "TEMPERATURE", &data_object.temp_c, "Camera Temperature", &status);
 	fits_write_key_unit(fptr, "TEMPERATURE", "C", &status);
 
-	fits_update_key(fptr, TSTRING, "SITE", data_object.site, "Instrument Location", &status);
+	fits_update_key(fptr, TSTRING, "SITE", data_object.config_object.site, "Instrument Location", &status);
 
-	fits_update_key(fptr, TSTRING, "CAMERA", data_object.camera, "Instrument Camera", &status);
+	fits_update_key(fptr, TSTRING, "CAMERA", data_object.config_object.camera, "Instrument Camera", &status);
+
+	fits_update_key(fptr, TSHORT, "XBIN", data_object.xbin, "x binning", &status);
+
+	fits_update_key(fptr, TSHORT, "XBIN", data_object.xbin, "y binning", &status);
 
 	fits_write_date(fptr, &status);
 

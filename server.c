@@ -98,7 +98,7 @@ void process_command(char command[], int socket) {
 
 		command_size = split(command,command_buffer); // split the exposure time
 
-		response = capture(strtol(command_buffer[1],NULL,0));
+		response = capture_write(strtol(command_buffer[1],NULL,0));
 
 		syslog( LOG_INFO, "capture command received.");
 		syslog( LOG_INFO, "writing file : %s",response);
