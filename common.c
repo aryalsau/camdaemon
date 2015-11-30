@@ -87,7 +87,7 @@ extern char * write_file(struct data data_object, char *location, char *filename
 	struct stat st = {0};
 	if (stat(location, &st) == -1) mkdir(location, 0700);
 
-	char * full_path = (char *)malloc( strlen(location)+strlen(filename)+1);
+	char *full_path = (char *)malloc( strlen(location)+strlen(filename)+1);
 	sprintf(full_path, "%s/%s", location, filename);
 
 	fitsfile *fptr;       /* pointer to the FITS file; defined in fitsio.h */
@@ -96,22 +96,27 @@ extern char * write_file(struct data data_object, char *location, char *filename
 	fits_create_file(&fptr, full_path, &status);   /* create new file */
 	fits_create_img(fptr, SHORT_IMG, naxis, naxes, &status);
 
+	//writing numbers
 	fits_update_key(fptr, TLONG, "EXPOSURE", &data_object.exp_time_ms, "Total Exposure Time", &status);
 	fits_write_key_unit(fptr, "EXPOSURE", "ms", &status);
 
 	fits_update_key(fptr, TFLOAT, "TEMPERATURE", &data_object.temp_c, "Camera Temperature", &status);
 	fits_write_key_unit(fptr, "TEMPERATURE", "C", &status);
 
+	fits_update_key(fptr, TSHORT, "XBIN", &data_object.xbin, "x binning", &status);
+
+	fits_update_key(fptr, TSHORT, "XBIN", &data_object.xbin, "y binning", &status);
+
+	//writing strings
 	fits_update_key(fptr, TSTRING, "SITE", data_object.config_object.site, "Instrument Location", &status);
 
 	fits_update_key(fptr, TSTRING, "CAMERA", data_object.config_object.camera, "Instrument Camera", &status);
 
-	fits_update_key(fptr, TSHORT, "XBIN", data_object.xbin, "x binning", &status);
+	char *fitsdate = (char *)malloc(24);
+	strftime(fitsdate, 24,"%Y-%m-%dT%H:%M:%S UT", data_object.time_info);
+	fits_update_key(fptr, TSTRING, "DATE", fitsdate, "file creation date (YYYY-MM-DDThh:mm:ss UT)", &status);
 
-	fits_update_key(fptr, TSHORT, "XBIN", data_object.xbin, "y binning", &status);
-
-	fits_write_date(fptr, &status);
-
+	//writing image array data
 	short ii, jj;
 	short copy[data_object.xdim][data_object.ydim];
 	for (jj = 0; jj < data_object.xdim; jj++)
