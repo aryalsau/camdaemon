@@ -50,8 +50,8 @@ extern struct file_path file_path_string() {
 	time(&raw_time);
 	time_info = gmtime(&raw_time);
 
-	file_path_object.filename = (char *)malloc(18);
-	strftime(file_path_object.filename, 18,"img%H%M%S_%j.fits", time_info);
+	file_path_object.filename = (char *)malloc(19);
+	strftime(file_path_object.filename, 19,"img%j_%H%M%S.fits", time_info);
 
 	file_path_object.folder_name = (char *)malloc(8);
 	strftime(file_path_object.folder_name,8,"%b%d%y", time_info);
