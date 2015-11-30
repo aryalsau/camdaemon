@@ -10,9 +10,9 @@ TARGET = camdaemon
 CC = gcc
 RM = rm
 
-#sudo gcc -o camdaemon main.c         -lm -ldl -lpthread -lraw1394 -Ivcam
-#sudo gcc -o camdaemon main.c         -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples -Ipixis
-#sudo gcc -o camdaemon main.c -landor -lm -ldl -lpthread -lraw1394 -Iikon
+#sudo gcc -o camdaemon server.c         -lm -ldl -lpthread -lraw1394 -Ivcam
+#sudo gcc -o camdaemon server.c         -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples -Ipixis
+#sudo gcc -o camdaemon server.c -landor -lm -ldl -lpthread -lraw1394 -Iikon
 
 all: $(TARGET)
 
