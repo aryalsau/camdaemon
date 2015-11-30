@@ -119,7 +119,7 @@ void process_command(char command[], int socket) {
 		syslog( LOG_INFO, "sending data...");
 		if (verbose) printf("preview command received.\nsending data...\n");
 
-		response = preview(strtol(command_buffer[1],NULL,0),socket); // this command will respond by itself
+		response = capture_preview(strtol(command_buffer[1],NULL,0),socket); // this command will respond by itself
 
 	} else if (strstr(command,stopd_command) != NULL){ // stop command received
 

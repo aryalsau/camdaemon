@@ -6,8 +6,7 @@ extern int init_camera();
 extern int uninit_camera();
 extern struct data capture(long exp_time);
 extern char * capture_write(long exp_time);
-extern char * capture_previw(long exp_time, int socet);
-extern char * preview(long exp_time_ms, int sock);
+extern char * capture_preview(long exp_time, int socket);
 
 extern int init_camera(){
 
@@ -61,7 +60,7 @@ extern char * capture_write(long exp_time_ms) {
 }
 
 
-extern char * preview(long exp_time_ms, int sock){
+extern char * capture_preview(long exp_time_ms, int socket){
 	struct data data_object = capture(exp_time_ms);
 
 	struct file_path file_path_object = time_info_to_file_path(data_object.time_info);
