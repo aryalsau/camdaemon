@@ -86,7 +86,7 @@ extern char * write_file(struct data data_object, char *location, char *filename
 
 	fits_update_key(fptr, TSHORT, "XBIN", &data_object.xbin, "x binning", &status);
 
-	fits_update_key(fptr, TSHORT, "XBIN", &data_object.xbin, "y binning", &status);
+	fits_update_key(fptr, TSHORT, "YBIN", &data_object.ybin, "y binning", &status);
 
 	//writing strings
 	fits_update_key(fptr, TSTRING, "SITE", data_object.config_object.site, "Instrument Location", &status);
@@ -106,6 +106,22 @@ extern char * write_file(struct data data_object, char *location, char *filename
 
 	/* Write the array of integers to the image */
 	fits_write_img(fptr, TSHORT, fpixel, nelements, copy[0], &status);
+
+
+	// char *columns[] = {"ACCELERATION", "FIELD"};
+	// char *formats[] = {"3E","3E"};
+	// char *units[] = {"m/s/s","mgauss"};
+	// int n_fields = 2;
+	//
+	// int i;
+	// double accel[3];
+	// for (i = 0; i<2; i++) {
+	// 	accel[i] = data_object.acceleration[i];
+	// }
+	//
+	// fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
+	// fits_write_col(fptr, TDOUBLE, 1, 1, 1, 3, &accel, &status);
+
 
 	fits_close_file(fptr, &status);            /* close the file */
 

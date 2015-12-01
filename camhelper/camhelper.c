@@ -40,6 +40,12 @@ extern struct data capture(long exp_time_ms){
 		for (ii = 0; ii < data_object.ydim; ii++)
 			data_object.image[ii][jj] = ii+jj;
 
+	int i;
+	for (i = 0; i<2; i++) {
+		data_object.acceleration[i] = i*i;
+		data_object.field[i] = i;
+	}
+
 	data_object.config_object = read_config();
 
 	sleep(ceil(data_object.exp_time_ms/1000));
