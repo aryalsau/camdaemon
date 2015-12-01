@@ -6,7 +6,6 @@ extern int init_camera();
 extern int uninit_camera();
 extern struct data capture(long exp_time);
 extern char * capture_write(long exp_time);
-extern char * capture_preview(long exp_time, int socket);
 
 extern int init_camera(){
 
@@ -41,9 +40,9 @@ extern struct data capture(long exp_time_ms){
 			data_object.image[ii][jj] = ii+jj;
 
 	int i;
-	for (i = 0; i<2; i++) {
-		data_object.acceleration[i] = i*i;
-		data_object.field[i] = i;
+	for (i = 0; i<3; i++) {
+		data_object.acceleration[i] = (double)1/(i+1);
+		data_object.field[i] = (double)3/(i+1);
 	}
 
 	data_object.config_object = read_config();
@@ -55,18 +54,6 @@ extern struct data capture(long exp_time_ms){
 
 
 extern char * capture_write(long exp_time_ms) {
-	struct data data_object = capture(exp_time_ms);
-
-	struct file_path file_path_object = time_info_to_file_path(data_object.time_info);
-
-	char * location = (char *)malloc(strlen(data_object.config_object.path)+strlen(file_path_object.folder_name)+2);
-	sprintf(location, "%s/%s", data_object.config_object.path, file_path_object.folder_name);
-
-	return write_file(data_object, location, file_path_object.filename);
-}
-
-
-extern char * capture_preview(long exp_time_ms, int socket){
 	struct data data_object = capture(exp_time_ms);
 
 	struct file_path file_path_object = time_info_to_file_path(data_object.time_info);

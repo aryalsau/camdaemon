@@ -83,7 +83,6 @@ static int split(char str[], char * str_array[]) {
 }
 
 void process_command(char command[], int socket) {
-	static const char preview_command[] = "preview";
 	static const char capture_command[] = "capture";
 	static const char stopd_command[] = "stopd";
 
@@ -111,17 +110,7 @@ void process_command(char command[], int socket) {
 			exit(1);
 		}
 
-	}	else if (strstr(command,preview_command) != NULL){ // preview command received
-
-		command_size = split(command,command_buffer); // split the exposure time
-
-		syslog( LOG_INFO, "preview command received.");
-		syslog( LOG_INFO, "sending data...");
-		if (verbose) printf("preview command received.\nsending data...\n");
-
-		response = capture_preview(strtol(command_buffer[1],NULL,0),socket); // this command will respond by itself
-
-	} else if (strstr(command,stopd_command) != NULL){ // stop command received
+	}	else if (strstr(command,stopd_command) != NULL){ // stop command received
 
 		command_size = split(command,command_buffer);
 
