@@ -1,12 +1,11 @@
 #include "common.h"
 
 
-extern struct header build_header();
-extern void copy_header(struct header header_struct, unsigned char *ptr_fileheader);
-extern struct file_path file_path_string();
 extern struct config read_config();
+extern struct file_path time_info_to_file_path(struct tm *time_info);
 extern short ** dyanmically_allocate(short xdim, short ydim, int type_size);
 extern char * write_file(struct data data_object, char *location, char *filename);
+extern char * preview_file(struct data data_object, char *location, char *filename);
 
 extern struct config read_config(){
 
@@ -47,24 +46,6 @@ extern struct file_path time_info_to_file_path(struct tm *time_info){
 	strftime(file_path_object.filename, 19,"img%j_%H%M%S.fits", time_info);
 	file_path_object.folder_name = (char *)malloc(8);
 	strftime(file_path_object.folder_name,8,"%b%d%y", time_info);
-	return file_path_object;
-}
-
-extern struct file_path file_path_string() {
-
-	struct file_path file_path_object;
-
-	time_t raw_time;
-	struct tm *time_info;
-	time(&raw_time);
-	time_info = gmtime(&raw_time);
-
-	file_path_object.filename = (char *)malloc(19);
-	strftime(file_path_object.filename, 19,"img%j_%H%M%S.fits", time_info);
-
-	file_path_object.folder_name = (char *)malloc(8);
-	strftime(file_path_object.folder_name,8,"%b%d%y", time_info);
-
 	return file_path_object;
 }
 
