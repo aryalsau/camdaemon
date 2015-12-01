@@ -107,21 +107,15 @@ extern char * write_file(struct data data_object, char *location, char *filename
 	/* Write the array of integers to the image */
 	fits_write_img(fptr, TSHORT, fpixel, nelements, copy[0], &status);
 
+	char *columns[] = {"ACCELERATION", "FIELD"};
+	char *formats[] = {"3E","3E"};
+	char *units[] = {"m/s/s","G"};
+	int n_rows    = 3;
+	int n_fields = 2;
 
-	// char *columns[] = {"ACCELERATION", "FIELD"};
-	// char *formats[] = {"3E","3E"};
-	// char *units[] = {"m/s/s","mgauss"};
-	// int n_fields = 2;
-	//
-	// int i;
-	// double accel[3];
-	// for (i = 0; i<2; i++) {
-	// 	accel[i] = data_object.acceleration[i];
-	// }
-	//
-	// fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
-	// fits_write_col(fptr, TDOUBLE, 1, 1, 1, 3, &accel, &status);
-
+	fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
+	fits_write_col(fptr, TDOUBLE, 1, 1, 1, n_rows, data_object.acceleration, &status);
+	fits_write_col(fptr, TDOUBLE, 2, 1, 1, n_rows, data_object.field, &status);
 
 	fits_close_file(fptr, &status);            /* close the file */
 
