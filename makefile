@@ -1,4 +1,4 @@
-COMLIBS = -lm -ldl -lpthread -lraw1394 -lcfitsio -lnsl
+COMLIBS = -lm -ldl -lpthread -lraw1394 -lcfitsio -lnsl -lphidget21
 PVCAMLIB = -lpvcam
 ANDORLIB = -landor
 PVCAMDIR = /usr/local/pvcam/examples

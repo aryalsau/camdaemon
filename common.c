@@ -1,5 +1,5 @@
 #include "common.h"
-
+#include "compass.c"
 
 extern struct config read_config();
 extern struct file_path time_info_to_file_path(struct tm *time_info);
@@ -115,7 +115,7 @@ extern char * write_file(struct data data_object, char *location, char *filename
 
 	fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
 	fits_write_col(fptr, TDOUBLE, 1, 1, 1, n_rows, data_object.acceleration, &status);
-	fits_write_col(fptr, TDOUBLE, 2, 1, 1, n_rows, data_object.field, &status);
+	fits_write_col(fptr, TDOUBLE, 2, 1, 1, n_rows, data_object.magnetic_field, &status);
 
 	fits_close_file(fptr, &status);            /* close the file */
 
