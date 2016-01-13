@@ -5,8 +5,9 @@
 // external interfaces
 extern int init_camera();
 extern int uninit_camera();
-extern char * capture(long exp_time_);
-extern char * preview(long exp_time_ms, int sock);
+extern struct data capture(long exp_time);
+extern char * capture_write(long exp_time);
+
 
 // internal function
 static void set_ROI( rgn_type* roi, uns16 s1, uns16 s2, uns16 sbin, uns16 p1, uns16 p2, uns16 pbin );
@@ -16,29 +17,7 @@ static void print_pv_error( );
 static void set_any_param( int16 hCam, uns32 param_id, void *param_value );
 static void get_any_param( int16 hCam, uns32 param_id, void *param_value );
 static void set_ADC( int16 hcam, uns32 port, int16 adc_index, int16 gain );
-static void acquire_standard( int16 hCam, uns16 * frameBuffer);
-
-int XDIM;
-int YDIM;
-int DAY;
-int YEAR;
-int XBIN;
-int YBIN;
-int NUMSUBARRAYS;
-int LEFT;
-int RIGHT;
-int TOP1;
-int BOTTOM1;
-int NUMCOADDS;
-long EXPTIMEMS;
-long WAITTIMEMS;
-float TEMPERATURE;
-char * SITENAME;
-char * FILENAME;
-char * MONTH;
-char * FILTER;
-
-char * LOCATION;
+static void acquire_standard( int16 hCam, uns16 * frameBuffer, uns32 exp_time);
 
 int16 camera_handle;
 
@@ -138,32 +117,6 @@ static void set_ADC( int16 hcam, uns32 port, int16 adc_index, int16 gain ) {
 
 extern int init_camera(){
 	// will allways do full frame captures
-	// so these entries never change so why even have them?
-
-	XDIM = 1024;
-	YDIM = 1024;
-	XBIN = 1;
-	YBIN = 1;
-	NUMSUBARRAYS = 1;
-	LEFT = 0;
-	RIGHT = 1024;
-	TOP1 = 1024;
-	BOTTOM1 = 0;
-	NUMCOADDS = 1;
-	SITENAME = "NA";
-	FILTER = "NA";
-	LOCATION = "/media/backup/data/";
-
-	// char *siteName, *camName, *path;
-	// siteName = getenv("CAMDAEMON_SITE");
-	// camName = getenv("CAMDAEMON_CAM");
-	// path = getenv("CAMDAEMON_PATH");
-	// if(siteName)
-	//     SITENAME = siteName;
-	// if(camName)
-	//     FILTER = camName;
-	// if(path)
-	//     LOCATION = path;
 
 	int16 cam_selection = 0;
 	char cam_name[CAM_NAME_LEN];
@@ -206,172 +159,15 @@ extern int uninit_camera(){
 	return 0;
 }
 
-extern char * capture(long exp_time_ms){
-
-	int16 num_frames;
-	int16 temperature;
-	get_any_param(camera_handle, PARAM_TEMP, &temperature);
-
-	EXPTIMEMS = exp_time_ms;
-	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)temperature/100;
-
-	syslog(LOG_INFO, "Temperature is %f c\n", TEMPERATURE);
-
-	struct config config_obj = read_config();
-	struct file_path file_path_obj = file_path_string();
-
-	struct stat st = {0};
-	if (stat(file_path_obj.folder_path, &st) == -1) {
-	    mkdir(file_path_obj.folder_path, 0700);
-	}
-
-	FILE *data;
-	data = fopen( file_path_obj.full_path , "w" );
-	if( !data ) {
-		syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
-		return 0;
-	}
-
-	struct header image_header = build_header();
-
-	// syslog(LOG_INFO, "exp_time_ %f\n", image_header.exp_time_);
-	// syslog(LOG_INFO, "day %d\n", image_header.day);
-	// syslog(LOG_INFO, "month %s\n", image_header.month);
-	// syslog(LOG_INFO, "year %d\n", image_header.year);
-	// syslog(LOG_INFO, "filename %s\n", image_header.filename);
-	// syslog(LOG_INFO, "siteName %s\n", image_header.siteName);
-	// syslog(LOG_INFO, "filter %s\n", image_header.filter);
-	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
-
-	uns8 * header;
-	const int header_size = 128;
-	header = (uns8*)malloc(header_size);
-	copy_header(image_header,header);
-	fwrite( header, 1, header_size, data);
-
-	sleep(ceil((float)exp_time_ms/1000));
-
-	const uns32 size = 1024*1024;
-	uns16 * frame;
-	frame = (uns16*)malloc( size *2 );
-	// if( !frame ) {
-	//     printf( "memory allocation error!\n" );
-	//     return;
-	// } else {
-	//     printf( "frame of data at address %x\n", frame );
-	// }
-
-	acquire_standard(camera_handle,frame);
-
-	fwrite( frame, sizeof(uns16), (size_t)size, data );
-
-	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
-
-	fclose( data );
-	if( header ) free( header );
-	if( frame ) free( frame );
-
-	return file_path_obj.full_path;
-}
-
-
-extern char * preview(long exp_time_ms, int sock){
-	int n;
-
-	int16 num_frames;
-	int16 temperature;
-	get_any_param(camera_handle, PARAM_TEMP, &temperature);
-
-	EXPTIMEMS = exp_time_ms;
-	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)temperature/100;
-
-	struct config config_obj = read_config();
-	struct file_path file_path_obj = file_path_string();
-
-	struct stat st = {0};
-	if (stat(file_path_obj.folder_path, &st) == -1) {
-	    mkdir(file_path_obj.folder_path, 0700);
-	}
-
-	FILE *data;
-	data = fopen( file_path_obj.full_path , "w" );
-	if( !data ) {
-		syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
-		return 0;
-	}
-
-	struct header image_header = build_header();
-
-	// syslog(LOG_INFO, "exp_time_ %f\n", image_header.exp_time_);
-	// syslog(LOG_INFO, "day %d\n", image_header.day);
-	// syslog(LOG_INFO, "month %s\n", image_header.month);
-	// syslog(LOG_INFO, "year %d\n", image_header.year);
-	// syslog(LOG_INFO, "filename %s\n", image_header.filename);
-	// syslog(LOG_INFO, "siteName %s\n", image_header.siteName);
-	// syslog(LOG_INFO, "filter %s\n", image_header.filter);
-	// syslog(LOG_INFO, "LOCATION %s\n", LOCATION);
-
-	uns8 * header;
-	const int header_size = 128;
-	header = (uns8*)malloc(header_size);
-	copy_header(image_header,header);
-	fwrite( header, 1, header_size, data);
-
-	n = write(sock,header,header_size);
-	if (n < 0) {
-		perror("ERROR writing to socket");
-		exit(1);
-	}
-
-	sleep(ceil((float)exp_time_ms/1000));
-
-	const uns32 size = 1024*1024;
-	uns16 * frame;
-	frame = (uns16*)malloc( size *2 );
-	// if( !frame ) {
-	//     printf( "memory allocation error!\n" );
-	//     return;
-	// } else {
-	//     printf( "frame of data at address %x\n", frame );
-	// }
-
-	acquire_standard(camera_handle,frame);
-
-	fwrite( frame, sizeof(uns16), (size_t)size, data );
-
-	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
-
-	n = write(sock,header,header_size);
-	if (n < 0) {
-		perror("ERROR writing to socket");
-		exit(1);
-	}
-
-	n = write(sock,frame,2*size);
-	if (n < 0) {
-		perror("ERROR writing to socket");
-		exit(1);
-	}
-
-	fclose( data );
-	if( header ) free( header );
-	if( frame ) free( frame );
-
-	return file_path_obj.full_path;
-}
 
 
 
-
-static void acquire_standard( int16 hCam, uns16 * frameBuffer){
+static void acquire_standard( int16 hCam, uns16 * frameBuffer, uns32 exp_time){
 
 	rgn_type *region;
 	uns32 size;
 	int16 status;
 	uns32 not_needed;
-	uns32 exp_time = EXPTIMEMS;
 
 	region = malloc( sizeof( rgn_type ) );
 	set_full_frame( hCam, region );
@@ -384,7 +180,7 @@ static void acquire_standard( int16 hCam, uns16 * frameBuffer){
 		return;
 	}
 
-	if( pl_exp_setup_seq( hCam, 1, 1, region, TIMED_MODE, (uns32)EXPTIMEMS, &size ) ) {
+	if( pl_exp_setup_seq( hCam, 1, 1, region, TIMED_MODE, exp_time, &size ) ) {
 		syslog(LOG_INFO, "setup sequence OK\n" );
 		syslog(LOG_INFO, "frame size = %lu\n", size );
 	} else {
@@ -395,7 +191,6 @@ static void acquire_standard( int16 hCam, uns16 * frameBuffer){
 	/* Start the acquisition */
 
 	/* ACQUISITION LOOP */
-
 	pl_exp_start_seq( hCam, frameBuffer );
 
 	/* wait for data or error */
@@ -416,4 +211,63 @@ static void acquire_standard( int16 hCam, uns16 * frameBuffer){
 
 	if( region ) free( region );
 
+}
+
+
+// extern char * capture(long exp_time_ms){
+extern struct data capture(long exp_time_ms){
+
+	struct data data_object;
+
+	data_object.xdim = 1024;
+	data_object.ydim = 1024;
+	data_object.xbin = 1;
+	data_object.ybin = 1;
+	data_object.exp_time_ms = exp_time_ms;
+	// data_object.temp_c = -60.0;
+
+	int16 num_frames;
+	int16 temperature;
+	get_any_param(camera_handle, PARAM_TEMP, &temperature);
+	data_object.temp_c = (float)temperature/100;
+	syslog(LOG_INFO, "Temperature is %f c\n", data_object.temp_c);
+
+	time_t raw_time;
+	time(&raw_time);
+	data_object.time_info = gmtime(&raw_time);
+
+	const uns32 size = 1024*1024;
+	uns16 * frame;
+	frame = (uns16*)malloc( size *2 );
+	if( !frame ) {
+	    printf( "memory allocation error!\n" );
+	    return;
+	} else {
+	    // printf( "frame of data at address %i\n", frame );
+	}
+	acquire_standard(camera_handle,frame,exp_time_ms);
+
+	data_object.image = dyanmically_allocate(data_object.xdim,data_object.xdim,sizeof(short*));
+	short ii, jj;
+	for (jj = 0; jj < data_object.xdim; jj++)
+		for (ii = 0; ii < data_object.ydim; ii++)
+			data_object.image[ii][jj] = frame[ii+data_object.xdim*jj];
+
+
+	data_object.config_object = read_config();
+
+	sleep(ceil(data_object.exp_time_ms/1000));
+
+	return data_object;
+}
+
+extern char * capture_write(long exp_time_ms) {
+	struct data data_object = capture(exp_time_ms);
+
+	struct file_path file_path_object = time_info_to_file_path(data_object.time_info);
+
+	char * location = (char *)malloc(strlen(data_object.config_object.path)+strlen(file_path_object.folder_name)+2);
+	sprintf(location, "%s/%s", data_object.config_object.path, file_path_object.folder_name);
+
+	return write_file(data_object, location, file_path_object.filename);
 }
