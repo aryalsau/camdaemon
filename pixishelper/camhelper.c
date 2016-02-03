@@ -253,6 +253,13 @@ extern struct data capture(long exp_time_ms){
 		for (ii = 0; ii < data_object.ydim; ii++)
 			data_object.image[ii][jj] = frame[ii+data_object.xdim*jj];
 
+	struct compass_data compass_data_object = get_compass_data();
+
+	int i;
+	for (i = 0; i<3; i++) {
+		data_object.acceleration[i] = compass_data_object.acceleration[i];
+		data_object.magnetic_field[i] = compass_data_object.magnetic_field[i];
+	}
 
 	data_object.config_object = read_config();
 
