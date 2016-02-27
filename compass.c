@@ -19,7 +19,7 @@ struct compass_data get_compass_data(){
 	CPhidget_open((CPhidgetHandle)spatial, -1);
 
 	//get the program to wait for a spatial device to be attached
-	if((result = CPhidget_waitForAttachment((CPhidgetHandle)spatial, 10000)))
+	if((result = CPhidget_waitForAttachment((CPhidgetHandle)spatial, 100)))
 	{
 		CPhidget_getErrorDescription(result, &err);
 		printf("Problem waiting for attachment: %s\n", err);
