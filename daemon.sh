@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/$(whoami)/camdaemon
+cd /home/ikon/camdaemon
 ./camdaemon -p 3000
