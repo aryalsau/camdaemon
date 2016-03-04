@@ -1,3 +1,2 @@
 #!/bin/bash
-cd /home/ikon/camdaemon
-./camdaemon -p 3000
+/bin/su - ikon -c "cd /home/ikon/camdaemon; ./camdaemon -p 3000"
