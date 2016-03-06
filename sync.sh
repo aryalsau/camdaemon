@@ -1,7 +1,7 @@
 #!/bin/bash
 uncomitted=$(git status -s)
 # some arguments don't have a corresponding value to go with it such as in the --default example.
-# ./sync.sh --server=192.168.1.2 --user=ikon --camera==pixis -f --time
+# ./sync.sh --server=192.168.1.2 --user=ikon --camera==pixis --force --time --code
 for i in "$@"
 do
 case $i in
@@ -16,8 +16,12 @@ case $i in
 		shift # past argument=value
 	;;
 
-	-c=*|--camera=*) # camera type
+	-m=*|--camera=*) # camera type
 		camera="${i#*=}"
+		shift # past argument=value
+	;;
+
+	-c|--code) # send code
 		code=true
 		shift # past argument=value
 	;;

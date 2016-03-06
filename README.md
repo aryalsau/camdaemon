@@ -10,7 +10,7 @@ The flags are
 
 Edit daemon.sh and `chmod +x daemon.sh` append the following in `etc/inittab` (with the correct location) to have the daemon respawn if interrupted
 
-	h1:12345:respawn:/home/'user'/camdaemon/daemon.sh
+	h1:2345:respawn:/home/'user'/camdaemon/daemon.sh
 
 see `config.cfg` file for configuration
 
@@ -25,13 +25,14 @@ The fields are
 * path : Folder Location to write files to (does not require a trailing slash / if going in to the current folder)
 
 
-## Server deployment
-Use `sync.sh` to deploy, example `./sync.sh --client=192.168.1.2 --user=ikon --camera==pixis --time`. Make sure all changes are committed before syncing.
+## camdaemon deployment
+Use `sync.sh` to deploy, (eg `./sync.sh --client=192.168.1.2 --user=ikon --camera==pixis --time`). Make sure all changes are committed before syncing.
 
 The parameters are for `sync.sh`
 
-* -ip or --server : ip of the server
-* -u or --user : User on the
-* -c or --camera : camera type
-* -f or --force : flag to force an upload with uncommitted changes
-* -t or --time : sync server time to the dev computer time
+* `-ip` or `--server` : ip of the server (eg `192.168.1.2`)
+* `-u` or `--user` : User on the server (eg `ikon`)
+* `-m` or `--camera` : camera type (can be `ikon`, `pixis` or `virtual`)
+* `-f` or `--force` : flag to force an upload with uncommitted changes
+* `-t` or `--time` : sync time only (server time to the dev computer time)
+* `-c` or `--code` : sync code only
