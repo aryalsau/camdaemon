@@ -6,7 +6,7 @@ for i in "$@"
 do
 case $i in
 
-	-ip=*|--client=*) # the ip of the clent
+	-ip=*|--server=*) # the ip of the clent
 		ip="${i#*=}"
 		shift # past argument=value
 	;;
