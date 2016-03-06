@@ -23,3 +23,15 @@ The fields are
 * site : Site where the instrument is located
 * camera : Camera used in the instrument
 * path : Folder Location to write files to (does not require a trailing slash / if going in to the current folder)
+
+
+## Server deployment
+Use `sync.sh` to deploy, example `./sync.sh --client=192.168.1.2 --user=ikon --camera==pixis --time`. Make sure all changes are committed before syncing.
+
+The parameters are for `sync.sh`
+
+* -ip or --server : ip of the server
+* -u or --user : User on the
+* -c or --camera : camera type
+* -f or --force : flag to force an upload with uncommitted changes
+* -t or --time : sync server time to the dev computer time
