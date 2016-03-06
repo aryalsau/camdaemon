@@ -25,13 +25,13 @@ extern struct config read_config(){
 	while( fgets (line, line_size, cfg_file)!=NULL ) {
 		parameter_str = strtok(line, "=");
 		val_str = strtok(NULL, "\n");
-		if (strcmp(parameter_str, "SITE") == 0){
+		if ((strcmp(parameter_str, "SITE") == 0) || (strcmp(parameter_str, "site") == 0)){
 			config_object.site = (char *)malloc(strlen(val_str));
 			strcpy(config_object.site, val_str);
-		} else if (strcmp(parameter_str, "CAMERA") == 0){
+		} else if ((strcmp(parameter_str, "CAMERA") == 0) || (strcmp(parameter_str, "camera") == 0)){
 			config_object.camera = (char *)malloc(strlen(val_str));
 			strcpy(config_object.camera, val_str);
-		} else if (strcmp(parameter_str, "PATH") == 0){
+		} else if ((strcmp(parameter_str, "PATH") == 0) || (strcmp(parameter_str, "path") == 0)){
 			config_object.path = (char *)malloc(strlen(val_str));
 			strcpy(config_object.path, val_str);
 		}
