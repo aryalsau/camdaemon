@@ -8,17 +8,18 @@ extern struct data capture(long exp_time);
 extern char * capture_write(long exp_time);
 
 extern int init_camera(){
-
 	syslog(LOG_INFO, "Initialising camdaemon...\n");
-
 	return 1;
 }
 
 extern int uninit_camera(){
-    return 0;
+	return 0;
 }
 
 extern struct data capture(long exp_time_ms){
+
+	char exp_time_ms_string[21];
+	sprintf(exp_time_ms_string,"beep -f 523.2 -l %lu", exp_time_ms);
 
 	struct data data_object;
 
@@ -49,7 +50,8 @@ extern struct data capture(long exp_time_ms){
 
 	data_object.config_object = read_config();
 
-	sleep(ceil(data_object.exp_time_ms/1000));
+	//sleep(ceil(data_object.exp_time_ms/1000));
+	system(exp_time_ms_string);
 
 	return data_object;
 }
