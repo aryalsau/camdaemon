@@ -14,9 +14,9 @@ Edit daemon.sh and `chmod +x daemon.sh` append the following in `etc/inittab` (w
 
 see `config.cfg` file for configuration
 
-		site=Umass LOCSST lab
-		camera=Princeton Instruments PIXIS 1024
-		path=data
+	site=Umass LOCSST lab
+	camera=Princeton Instruments PIXIS 1024
+	path=data
 
 The fields are
 
