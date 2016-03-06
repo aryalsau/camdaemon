@@ -1,7 +1,7 @@
 #!/bin/bash
 uncomitted=$(git status -s)
 # some arguments don't have a corresponding value to go with it such as in the --default example.
-# ./sync.sh --client=192.168.1.2 --user=ikon --camera==pixis -f --time
+# ./sync.sh --server=192.168.1.2 --user=ikon --camera==pixis -f --time
 for i in "$@"
 do
 case $i in
@@ -47,12 +47,11 @@ done
 if [ "$time" = true ]; then
 
 	if [ -z "$ip" ] || [ -z "$user" ]; then
-		echo 'Requires both ip and camera'
+		echo 'Requires both ip and user'
 	else
 		echo setting server time to client time
 		# Sun Mar  6 01:34:35 CET 2016
 		clienttime="$(date +'"%d %b %Y %T"')"
-		echo "$clienttime"
 		ssh "$user"@"$ip" "sudo date --set=$clienttime"
 	fi
 
