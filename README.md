@@ -10,7 +10,7 @@ The flags are
 
 Edit daemon.sh and `chmod +x daemon.sh` append the following in `etc/inittab` (with the correct location) to have the daemon respawn if interrupted
 
-	h1:2345:respawn:/home/'user'/camdaemon/daemon.sh
+	cd:2345:respawn:/home/'user'/camdaemon/daemon.sh
 
 see `config.cfg` file for configuration
 
