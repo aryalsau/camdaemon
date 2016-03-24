@@ -26,7 +26,7 @@ The fields are
 
 
 ## camdaemon deployment
-Use `sync.sh` to deploy, (eg `./sync.sh --client=192.168.1.2 --user=ikon --camera==pixis --time`). Make sure all changes are committed before syncing.
+Use `sync.sh` to deploy, (eg `./sync.sh --client=192.168.1.2 --user=ikon --camera=pixis --time`). Make sure all changes are committed before syncing.
 
 The parameters are for `sync.sh`
 
