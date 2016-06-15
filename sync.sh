@@ -1,5 +1,4 @@
 #!/bin/bash
-uncomitted=$(git status -s)
 # some arguments don't have a corresponding value to go with it such as in the --default example.
 # ./sync.sh --server=192.168.1.2 --user=ikon --camera==pixis --force --time --code
 for i in "$@"
@@ -62,6 +61,8 @@ if [ "$time" = true ]; then
 fi
 
 if [ "$code" = true ]; then
+
+	uncomitted=$(git status -s)
 
 	if [[ -z "$uncomitted" ]] || [ "$force" = true ]; then
 
