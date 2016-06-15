@@ -8,37 +8,37 @@ case $i in
 
 	-ip=*|--server=*) # the ip of the clent
 		ip="${i#*=}"
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	-u=*|--user=*) # the user on the client to run camdaemon
 		user="${i#*=}"
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	-m=*|--camera=*) # camera type
 		camera="${i#*=}"
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	-c|--code) # send code
 		code=true
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	-f|--force) # force push even if uncomitted changes available
 		force=true
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	-t|--time) # force push even if uncomitted changes available
 		time=true
-		shift # past argument=value
+		shift # pass argument=value
 	;;
 
 	--default)
 		DEFAULT=YES
-		shift # past argument with no value
+		shift # pass argument with no value
 	;;
 
 	*)
