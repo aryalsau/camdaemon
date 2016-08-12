@@ -161,12 +161,12 @@ case "$camera" in
 			echo compiling camdaemon for "$camera" on "$user"@"$ip"
 			ssh "$user"@"$ip" "make "$camera" -C " "$location"
 
-			daemonsh='#!/bin/bash
-/bin/su - '"$user"' -c "cd '"$location"'; ./camdaemon -p 3000"'
-
-			echo "$daemonsh" | ssh "$user"@"$ip" "cat > "$location"/daemon.sh"
-
-			ssh "$user"@"$ip" "chmod +x "$location"/daemon.sh"
+# 			daemonsh='#!/bin/bash
+# /bin/su - '"$user"' -c "cd '"$location"'; ./camdaemon -p 3000"'
+# 			echo wrting daemon.sh
+# 			echo "$daemonsh" | ssh "$user"@"$ip" "cat > "$location"/daemon.sh"
+# 			echo configuring daemon.sh
+# 			ssh "$user"@"$ip" "chmod +x "$location"/daemon.sh"
 
 		fi
 	;;
