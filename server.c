@@ -11,13 +11,14 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include <errno.h>
+
 #include "camhelper.c"
 
 void process_command(char command[], int socket);
 static void socket_hook(int socket);
 static void signal_handler(int signum);
 static char * parse_ip_address(int address);
-static void exit_error(const char *msg);
 static char * stop_daemon(int socket);
 static char * restart_daemon();
 
@@ -32,6 +33,12 @@ static void exit_error(const char *msg) {
 		printf("%s\n",msg);
 	}
 	exit(EXIT_FAILURE);
+}
+
+void exit_main(char* message, int exit_code){
+	// if (errno){perror(message);} else {}
+	printf("%s\nexiting...", message);
+	exit(exit_code);
 }
 
 static void signal_handler(int signum) {
@@ -176,16 +183,38 @@ static char * stop_daemon(int socket) {
 }
 
 void print_usage() {
-	printf("Usage: camdaemon -v\n\tv - verbose\n");
+	printf("Usage:\tcamdaemon -h -v -p 3000\nv\t- verbose\np #\t- port (default 8000)\nh\t- this help screen\n");
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 int main(int argc , char *argv[]) {
 
-	int option = 0;
-	char error_buffer[80];
-	int iset_option = 1;
+	signal(SIGUSR1, signal_handler);
+	signal(SIGUSR2, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGKILL, signal_handler);
+	signal(SIGSEGV, signal_handler);
 
-	sleep(1);
+	int option = 0;
 
   int port = 8000;
 
@@ -197,62 +226,25 @@ int main(int argc , char *argv[]) {
 		case 'p' :
 			port = atoi(optarg);
 			break;
-		default:
+		case 'h' :
 			print_usage();
-			sprintf(error_buffer, "Unknown Option : %s", argv[1]);
-			exit_error(error_buffer);
+			exit_main(NULL, EXIT_SUCCESS);
+			break;
+		default : ;
+			char error_string[80];
+			sprintf(error_string, "Unknown Option : %s", argv[1]);
+			print_usage();
+			exit_main(error_string, EXIT_FAILURE);
 		}
 	}
 
-
-	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGKILL, signal_handler);
-	signal(SIGSEGV, signal_handler);
-
-
-	/* here is the socket */
+	/* declare  socket */
 	int socketfd, newsocketfd;
 	socklen_t clientlen;
 	struct sockaddr_in server, client;
+	int iset_option = 1;
+
 	int n, m;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   /* Daemon-specific initialization goes here */
 
