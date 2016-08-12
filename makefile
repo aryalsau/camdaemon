@@ -25,5 +25,5 @@ pixis:
 ikon:
 	$(CC) $(CFLAGS) $(TARGET) server.c $(ANDORLIB) $(COMLIBS) -I$(IKONDIR)
 
-clear:
+clean:
 	$(RM) $(TARGET)
