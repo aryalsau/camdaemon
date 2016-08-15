@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # to push code only from eos desktop to virtmanger
-# sh sync.sh --server=192.168.122.117 --user=kuravih --location=/home/kuravih/camdaemon --code --force
+# sh sync.sh --server=192.168.205.139 --user=kuravih --location=/home/kuravih/camdaemon --code --camera=pixis --force
 
 
 

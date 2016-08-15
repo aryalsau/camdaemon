@@ -1,25 +1,26 @@
 #include "../common.c"
 
+int init_camera();
+int uninit_camera();
+struct data capture(unsigned long* exp_time);
+char * capture_write(unsigned long* exp_time_ms, char* response);
 
-// external interfaces
-extern int init_camera();
-extern int uninit_camera();
-extern struct data capture(long exp_time);
-extern char * capture_write(long exp_time);
-
-extern int init_camera(){
-	syslog(LOG_INFO, "Initialising camdaemon...\n");
+int init_camera(){
+	syslog(LOG_ERR, "initialising camera\n");
+	if (verbose) printf("initialising camera\n");
 	return 1;
 }
 
-extern int uninit_camera(){
+int uninit_camera(){
+	syslog(LOG_ERR, "uninitialising camera\n");
+	if (verbose) printf("uninitialising camera\n");
 	return 0;
 }
 
-extern struct data capture(long exp_time_ms){
+struct data capture(unsigned long* exp_time_ms){
 
 	char exp_time_ms_string[21];
-	sprintf(exp_time_ms_string,"beep -f 523.2 -l %lu", exp_time_ms);
+	sprintf(exp_time_ms_string,"beep -f 523.2 -l %lu", *exp_time_ms);
 
 	struct data data_object;
 
@@ -27,7 +28,7 @@ extern struct data capture(long exp_time_ms){
 	data_object.ydim = 1024;
 	data_object.xbin = 1;
 	data_object.ybin = 1;
-	data_object.exp_time_ms = exp_time_ms;
+	data_object.exp_time_ms = *exp_time_ms;
 	data_object.temp_c = -60.0;
 
 	time_t raw_time;
@@ -57,7 +58,7 @@ extern struct data capture(long exp_time_ms){
 }
 
 
-extern char * capture_write(long exp_time_ms) {
+char * capture_write(unsigned long* exp_time_ms, char* response) {
 	struct data data_object = capture(exp_time_ms);
 
 	struct file_path file_path_object = time_info_to_file_path(data_object.time_info);

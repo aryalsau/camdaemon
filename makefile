@@ -14,6 +14,9 @@ RM = rm
 #sudo gcc -o camdaemon server.c         -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples -Ipixis
 #sudo gcc -o camdaemon server.c -landor -lm -ldl -lpthread -lraw1394 -Iikon
 
+clean:
+	$(RM) $(TARGET)
+
 all: $(TARGET)
 
 virtual:
@@ -24,6 +27,3 @@ pixis:
 
 ikon:
 	$(CC) $(CFLAGS) $(TARGET) server.c $(ANDORLIB) $(COMLIBS) -I$(IKONDIR)
-
-clean:
-	$(RM) $(TARGET)

@@ -10,76 +10,55 @@
 
 #include <sys/socket.h>
 #include <netinet/in.h>
-
+#include <getopt.h>
 #include <errno.h>
 
 #include "camhelper.c"
 
-void process_command(char command[], int socket);
-static void socket_hook(int socket);
-static void signal_handler(int signum);
-static char * parse_ip_address(int address);
-static char * stop_daemon(int socket);
-static char * restart_daemon();
+bool verbose = false;
 
-int verbose = 0;
 int loop = 1;
 
-static void exit_error(const char *msg) {
-	int errsv = errno;
-	if (errno){
-		perror(msg);
-	} else {
-		printf("%s\n",msg);
-	}
-	exit(EXIT_FAILURE);
-}
+int split(char* str, char* str_array[]);
+void signal_handler(int signum);
 
-void exit_main(char* message, int exit_code){
-	// if (errno){perror(message);} else {}
-	printf("%s\nexiting...", message);
-	exit(exit_code);
-}
+const char capture_command[] = "capture";
+const char stop_command[] = "stop";
 
-static void signal_handler(int signum) {
+void signal_handler(int signum) {
 	switch ( signum ) {
 		case SIGKILL:
-			syslog( LOG_INFO, "SIGKILL Received... \n");
-			if (verbose) printf("SIGKILL Received... \n");
+			syslog(LOG_INFO, "SIGKILL Received...\nexiting...\n");
+			if (verbose) printf("SIGKILL Received...\nexiting...\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGTERM:
-			syslog( LOG_INFO, "SIGTERM Received... \n");
-			if (verbose) printf("SIGTERM Received... \n");
+			syslog(LOG_INFO, "SIGTERM Received...\nexiting...\n");
+			if (verbose) printf("SIGTERM Received...\nexiting...\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGUSR1:
-			syslog( LOG_INFO, "SIGUSR1 Received... \n");
-			if (verbose) printf("SIGUSR1 Received... \n");
+			syslog(LOG_INFO, "SIGUSR1 Received...\nexiting...\n");
+			if (verbose) printf("SIGUSR1 Received...\nexiting...\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGUSR2:
-			syslog( LOG_INFO, "SIGUSR2 Received... \n");
-			if (verbose) printf("SIGUSR2 Received... \n");
+			syslog(LOG_INFO, "SIGUSR2 Received...\nexiting...\n");
+			if (verbose) printf("SIGUSR2 Received...\nexiting...\n");
 			exit(EXIT_SUCCESS);
 			break;
 		case SIGSEGV:
-			syslog( LOG_INFO, "SIGSEGV Received... \n");
-			if (verbose) printf("SIGSEGV Received... \n");
-			exit(EXIT_SUCCESS);
+			syslog(LOG_INFO, "SIGSEGV Received...\nexiting...\n");
+			if (verbose) printf("SIGSEGV Received...\nexiting...\n");
+			exit(EXIT_FAILURE);
 			break;
 	}
 }
 
-static char * parse_ip_address(int address) {
-	static char address_buffer[80];
-	sprintf(address_buffer, "%d.%d.%d.%d", (address&0xFF), ((address&0xFF00)>>8), ((address&0xFF0000)>>16), ((address&0xFF000000)>>24));
-	return address_buffer;
-}
 
-static int split(char str[], char * str_array[]) {
-	char * pch;
-	pch = strtok (str," ,.-");
+int split(char* str, char* str_array[5]) {
+	char* pch;
+	pch = strtok(str, " ,.-");
 	int i = 0;
 	while (pch != NULL) {
 		str_array[i] = pch;
@@ -89,115 +68,41 @@ static int split(char str[], char * str_array[]) {
 	return i;
 }
 
-void process_command(char command[], int socket) {
-	static const char capture_command[] = "capture";
-	static const char stopd_command[] = "stopd";
 
-	char * command_buffer[5];
-	int command_size;
+void parse_command(char buffer[], struct cmd_struct* command) {
 
-	int n;
+	char* command_array[5];
+	int command_array_size;
+	char* response;
 
-	char * response;
+	command->time_us = 1000;
+	command->binning[0] = 1;
+	command->binning[1] = 1;
 
-	if (strstr(command, capture_command) != NULL){ // capture command received
-
-		command_size = split(command,command_buffer); // split the exposure time
-
-		response = capture_write(strtol(command_buffer[1],NULL,0));
-
-		syslog( LOG_INFO, "capture command received.");
-		syslog( LOG_INFO, "writing file : %s",response);
-
-		if (verbose)	printf("capture command received.\nwriting file : %s\n",response);
-
-		n = write(socket,response,strlen(response)); // respond with the filename response
-		if (n < 0) {
-			perror("ERROR writing to socket");
-			exit(1);
+	if (strstr(buffer, capture_command) != NULL){ // capture command received
+		command_array_size = split(buffer, command_array); // split the command
+		command->flag = CAPTURE;
+		switch (command_array_size) {
+			case 2:
+				command->time_us = atol(command_array[1]);
+				break;
+			case 3:
+				command->time_us = atol(command_array[1]);
+				command->binning[0] = atol(command_array[2]);
+				break;
+			case 4:
+				command->time_us = atol(command_array[1]);
+				command->binning[0] = atoi(command_array[2]);
+				command->binning[1] = atoi(command_array[3]);
+				break;
 		}
-
-	}	else if (strstr(command,stopd_command) != NULL){ // stop command received
-
-		command_size = split(command,command_buffer);
-
-		syslog( LOG_INFO, "stopd command received.");
-		syslog( LOG_INFO, "stopping camdaemon...\n");
-		if (verbose) printf("stopd command received.\nstopping camdaemon...\n");
-
-		response = stop_daemon(socket);
-
-		n = write(socket,response,strlen(response)); // respond with the stopping message
-		if (n < 0) {
-			perror("ERROR writing to socket");
-			exit(1);
-		}
-
-	} else { // invalid command received
-
-    syslog( LOG_INFO, "Invalid command received.\n");
-    if (verbose)
-      printf("Invalid command received.\n");
-
-		response = "invalid command";
-
-		n = write(socket,response,strlen(response)); // respond with the invalid command message
-		if (n < 0) {
-			perror("ERROR writing to socket");
-			exit(1);
-		}
-
+	} else if (strstr(buffer, stop_command) != NULL){ // stop command received
+		command->flag = STOP;
+	} else {
+		command->flag = INVALID;
 	}
 
 }
-
-static void socket_hook(int socket) {
-
-	int n;
-
-	unsigned short * response;
-
-	char rx_buffer[256];
-	char command_buffer[256];
-
-	bzero(rx_buffer,256);
-	bzero(command_buffer,256);
-	n = read(socket,rx_buffer,255);
-	memcpy(command_buffer, rx_buffer, strlen(rx_buffer)+1);
-	bzero(rx_buffer,256);
-
-	if (n < 0) exit_error("ERROR reading from socket");
-
-	process_command(command_buffer,socket);
-
-	bzero(command_buffer,256);
-
-}
-
-static char * stop_daemon(int socket) {
-	char * stop_response;
-	stop_response = "stopping camdaemon";
-	uninit_camera();
-	loop = 0;
-	return stop_response;
-}
-
-void print_usage() {
-	printf("Usage:\tcamdaemon -h -v -p 3000\nv\t- verbose\np #\t- port (default 8000)\nh\t- this help screen\n");
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -216,25 +121,28 @@ int main(int argc , char *argv[]) {
 
 	int option = 0;
 
-  int port = 8000;
+	int port = 8000;
 
-	while ((option = getopt(argc, argv,"vp:")) != -1) {
+	while ((option = getopt(argc, argv, "hvp:")) != -1) {
 		switch (option) {
 		case 'v' :
-			verbose = 1;
+			verbose = true;
 			break;
 		case 'p' :
 			port = atoi(optarg);
 			break;
 		case 'h' :
-			print_usage();
-			exit_main(NULL, EXIT_SUCCESS);
+			printf("Usage:\tcamdaemon -h -v -p 3000\nv\t- verbose\np #\t- port (default 8000)\nh\t- this help screen\n");
+			syslog(LOG_INFO, "exiting...\n");
+			if (verbose) printf("exiting...\n");
+			exit(EXIT_SUCCESS);
 			break;
-		default : ;
-			char error_string[80];
-			sprintf(error_string, "Unknown Option : %s", argv[1]);
-			print_usage();
-			exit_main(error_string, EXIT_FAILURE);
+		default :
+			printf("Usage:\tcamdaemon -h -v -p 3000\nv\t- verbose\np #\t- port (default 8000)\nh\t- this help screen\n");
+			syslog(LOG_ERR, "Unknown Option : %s\nexiting...\n", argv[1]);
+			if (verbose) printf("Unknown Option : %s\nexiting...\n", argv[1]);
+			exit(EXIT_FAILURE);
+			break;
 		}
 	}
 
@@ -243,78 +151,156 @@ int main(int argc , char *argv[]) {
 	socklen_t clientlen;
 	struct sockaddr_in server, client;
 	int iset_option = 1;
-
 	int n, m;
+	char rx_buffer[128];
+	struct cmd_struct command;
+	char* response;
 
-  /* Daemon-specific initialization goes here */
 
-  /* here is more socket stuff */
-  socketfd = socket(AF_INET, SOCK_STREAM, 0);
-  // fcntl(socketfd, F_SETFL, O_NONBLOCK);
+	/* define socket */
+	socketfd = socket(AF_INET, SOCK_STREAM, 0);
+	// fcntl(socketfd, F_SETFL, O_NONBLOCK);
 	if (socketfd < 0) {
-		exit_error("ERROR opening socket");
+		syslog(LOG_ERR, "error opening socket\n");
+		if (verbose) printf("error opening socket\n");
 		exit(EXIT_FAILURE);
 	} else {
-		syslog(LOG_INFO,"camdaemon started on port %d", port);
-		if (verbose) printf("camdaemon started on port %d\n",port);
+		syslog(LOG_INFO, "camdaemon started on port %d\n", port);
+		if (verbose) printf("camdaemon started on port %d\n", port);
 	}
 
-	bzero((char *) &server, sizeof(server));
+	bzero((char*)&server, sizeof(server));
 
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
 	server.sin_port = htons(port);
 	setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iset_option, sizeof(iset_option));
 
-  if (bind(socketfd, (struct sockaddr *) &server,sizeof(server)) < 0) {
-		syslog(LOG_INFO,"ERROR on binding to port %d", port);
-		if (verbose) printf("ERROR on binding to port %d\n",port);
-		exit_error("ERROR on binding");
+  if (bind(socketfd, (struct sockaddr*)&server, sizeof(server)) < 0) {
+		syslog(LOG_ERR, "error on binding to port %d\n", port);
+		if (verbose) printf("error on binding to port %d\n", port);
 		exit(EXIT_FAILURE);
 	}
 
-
-
   init_camera();
 
-	listen(socketfd,5);
+	listen(socketfd, 5);
+
   do {
 
 		clientlen = sizeof(client);
-		newsocketfd = accept(socketfd, (struct sockaddr *) &client,  &clientlen);
+		newsocketfd = accept(socketfd, (struct sockaddr*)&client,  &clientlen);
+		int address = client.sin_addr.s_addr;
+
 		if (newsocketfd < 0) {
-			exit_error("ERROR on accept");
+			uninit_camera();
+			syslog(LOG_ERR, "error on accepting connection\n");
+			if (verbose) printf("error on accepting connection\n");
 			exit(EXIT_FAILURE);
+		} else {
+			syslog(LOG_INFO, "%d.%d.%d.%d connected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
+			if (verbose) printf("%d.%d.%d.%d connected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
 		}
 
-		syslog(LOG_INFO,"%s connected", parse_ip_address(client.sin_addr.s_addr));
-		if (verbose) printf("%s connected\n", parse_ip_address(client.sin_addr.s_addr));
 
-		socket_hook(newsocketfd);
+
+
+
+
+
+
+		n = read(newsocketfd, rx_buffer, 128);
+		if (n < 0) {
+			uninit_camera();
+			syslog(LOG_ERR, "error reading from socketfd\nexiting...\n");
+			if (verbose) printf("error reading from socketfd\nexiting...\n");
+			exit(EXIT_FAILURE);
+		} else {
+			parse_command(rx_buffer, &command);
+
+			switch (command.flag) {
+				case INVALID:
+					response = "invalid command\n";
+					m = write(newsocketfd, response, strlen(response)); // respond with stopping message
+					if (m < 0) {
+						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
+						if (verbose) printf("error writing to socket\nexiting...\n");
+						exit(EXIT_FAILURE);
+					} else {
+						syslog(LOG_INFO, "invalid command\n");
+						if (verbose) printf("invalid command\n");
+					}
+					break;
+				case STOP:
+					uninit_camera();
+					response = "stop received\nstopping daemon\n";
+					m = write(newsocketfd, response, strlen(response)); // respond with stopping message
+					if (m < 0) {
+						uninit_camera();
+						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
+						if (verbose) printf("error writing to socket\nexiting...\n");
+						exit(EXIT_FAILURE);
+					} else {
+						syslog(LOG_INFO, "stop command received\nstopping daemon...\n");
+						if (verbose) printf("stop command received\nstopping daemon...\n");
+						exit(EXIT_SUCCESS);
+					}
+					break;
+				case CAPTURE:
+					// capture_write(&command, &response);
+					response = "capture received\n";
+					m = write(newsocketfd, response, strlen(response));
+					if (m < 0) {
+						uninit_camera();
+						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
+						if (verbose) printf("error writing to socket\nexiting...\n");
+						exit(EXIT_FAILURE);
+					} else {
+						syslog(LOG_INFO, "capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
+						if (verbose) printf("capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
+					}
+					break;
+				default:
+					break;
+			}
+
+		}
+
+
+
+
+
+
+
+
 
 		if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
-		  exit_error("ERROR shutting down connection");
-		  exit(EXIT_FAILURE);
+			uninit_camera();
+			syslog(LOG_ERR, "error shutting down connection\n");
+			if (verbose) printf("error shutting down connection\n");
+			exit(EXIT_FAILURE);
 		} else {
-			syslog(LOG_INFO,"%s disconnected", parse_ip_address(client.sin_addr.s_addr));
-			if (verbose) printf("%s disconnected\n", parse_ip_address(client.sin_addr.s_addr));
+			syslog(LOG_INFO, "%d.%d.%d.%d disconnected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
+			if (verbose) printf("%d.%d.%d.%d disconnected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
 		}
+
 		close(newsocketfd);
 
 	} while (loop);
 
-
-
-
-
-
 	if (shutdown(socketfd, SHUT_RDWR) < 0) {
-		exit_error("ERROR shutting down socket");
+		uninit_camera();
+		syslog(LOG_ERR, "error shutting down socket\n");
+		if (verbose) printf("error shutting down socket\n");
 		exit(EXIT_FAILURE);
 	} else {
+		uninit_camera();
 		syslog(LOG_INFO,"camdaemon port %d shutting down", port);
-		if (verbose) printf("camdaemon port %d shutting down\n", port);
+		if (verbose) printf("camdaemon port %d shutting down", port);
+		exit(EXIT_SUCCESS);
 	}
+
 	close(socketfd);
+
 	return 0;
 }
