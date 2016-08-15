@@ -2,9 +2,9 @@ COMLIBS = -lm -ldl -lpthread -lraw1394 -lcfitsio -lnsl -lphidget21
 PVCAMLIB = -lpvcam
 ANDORLIB = -landor
 PVCAMDIR = /usr/local/pvcam/examples
-IKONDIR = ikonhelper
-PIXISDIR = pixishelper
-VCAMDIR = camhelper
+IKONDIR = ./ikonhelper
+PIXISDIR = ./pixishelper
+VCAMDIR = ./camhelper
 CFLAGS = -o
 TARGET = camdaemon
 CC = gcc
@@ -20,7 +20,8 @@ clean:
 all: $(TARGET)
 
 virtual:
-	$(CC) $(CFLAGS) $(TARGET) server.c $(COMLIBS) -I$(VCAMDIR)
+	$(CC) $(CFLAGS) camhelper.o -c $(VCAMDIR)/camhelper.c -I$(VCAMDIR)
+	$(CC) camhelper.o $(CFLAGS) $(TARGET) server.c $(COMLIBS) -I$(VCAMDIR)
 
 pixis:
 	$(CC) $(CFLAGS) $(TARGET) server.c $(PVCAMLIB) $(COMLIBS) -I$(PVCAMDIR) -I$(PIXISDIR)
