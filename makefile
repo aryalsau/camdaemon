@@ -16,6 +16,7 @@ RM = rm
 
 clean:
 	$(RM) $(TARGET)
+	$(RM) camhelper.o
 
 all: $(TARGET)
 

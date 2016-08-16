@@ -8,7 +8,6 @@
 #  endif
 #endif
 
-
 #include <stdlib.h>
 #include <syslog.h>
 #include <stdio.h>
@@ -22,15 +21,9 @@
 #include <fcntl.h>
 #include <fitsio.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <getopt.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <signal.h>
-#include <syslog.h>
 #include "camhelper.h"
 
 bool VERBOSE = false;
@@ -42,6 +35,7 @@ void signal_handler(int signum);
 
 const char capture_command[] = "capture";
 const char stop_command[] = "stop";
+
 
 void signal_handler(int signum) {
 	switch ( signum ) {
@@ -87,7 +81,7 @@ int split(char* str, char* str_array[5]) {
 }
 
 
-void parse_command(char buffer[], struct cmd_struct* command) {
+void parse_command(char buffer[], struct Command* command) {
 
 	char* command_array[5];
 	int command_array_size;
@@ -165,7 +159,7 @@ int main(int argc , char *argv[]) {
 	int iset_option = 1;
 	int n, m;
 	char rx_buffer[128];
-	struct cmd_struct command;
+	struct Command command;
 	char* response;
 
 
@@ -270,7 +264,7 @@ int main(int argc , char *argv[]) {
 						syslog(LOG_INFO, "capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
 						if (VERBOSE) printf("capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
 					}
-					capture_write(&command, &response);
+					capture_write(&command, response);
 
 					break;
 				default:

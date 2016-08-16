@@ -5,10 +5,10 @@
 
 	extern bool VERBOSE;
 
-	enum {CAPTURE, STOP, INVALID} cmd;
+	typedef enum {CAPTURE, STOP, INVALID} Flag;
 
-	extern struct cmd_struct {
-		cmd flag;
+	struct Command {
+		Flag flag;
 		unsigned long time_us;
 		unsigned char binning[2];
 	};

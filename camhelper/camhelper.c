@@ -15,13 +15,14 @@ int uninit_camera(){
 	return 0;
 }
 
-int capture(unsigned long* exp_time_ms){
+int capture(unsigned long exp_time_ms){
 	syslog(LOG_INFO, "capture command\n");
 	if (VERBOSE) printf("capture command\n");
 	return 0;
 }
 
-int capture_write(struct cmd_struct* command, char* response){
+int capture_write(struct Command* command, char* response){
+	capture(command->time_us);
 	syslog(LOG_INFO, "capture_write command\n");
 	if (VERBOSE) printf("capture_write command\n");
 	return 0;
