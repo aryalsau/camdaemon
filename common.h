@@ -15,9 +15,10 @@ struct Command {
 struct Data {
 	char* site;
 	char* camera;
-	char* root;
+	char* location;
 	char* file_name;
 	char* folder_name;
+	char* full_path;
 	struct tm *time_info;
 	unsigned long exp_time_us;
 	float temp_c;
@@ -31,10 +32,10 @@ struct Data {
 };
 
 int update_config(char* filepath, struct Data* data);
-int update_exptime(unsigned long* exp_time_us, struct Data* data);
+int update_exp_time(unsigned long* exp_time_us, struct Data* data);
 int update_xbin(unsigned char* xbin, struct Data* data);
 int update_ybin(unsigned char* ybin, struct Data* data);
-int update_filename(struct Data* data);
+int update_file_name(struct Data* data);
 int write_to_disk(struct Data* data, char* response);
 
 #endif

@@ -30,8 +30,8 @@ int update_config(char* config_filepath, struct Data* data){
 				data->camera = (char *)malloc(strlen(value_str)+1);
 				strcpy(data->camera, value_str);
 			} else if ((strcmp(parameter_str, "PATH") == 0) || (strcmp(parameter_str, "path") == 0)){
-				data->root = (char *)malloc(strlen(value_str)+1);
-				strcpy(data->root, value_str);
+				data->location = (char *)malloc(strlen(value_str)+1);
+				strcpy(data->location, value_str);
 			}
 		}
 		free(line);
@@ -41,7 +41,7 @@ int update_config(char* config_filepath, struct Data* data){
 	return 0;
 }
 
-int update_exptime(unsigned long* exp_time_us, struct Data* data){
+int update_exp_time(unsigned long* exp_time_us, struct Data* data){
 	data->exp_time_us = *exp_time_us;
 	return 0;
 }
@@ -57,7 +57,8 @@ int update_ybin(unsigned char* ybin, struct Data* data){
 }
 
 
-int update_filename(struct Data* data){
+int update_file_name(struct Data* data){
+	int full_path_length;
 	time_t raw_time;
 	time(&raw_time);
 	data->time_info = gmtime(&raw_time);
@@ -65,6 +66,9 @@ int update_filename(struct Data* data){
 	strftime(data->file_name, 19, "img%j_%H%M%S.fits", data->time_info);
 	data->folder_name = (char*)malloc(8);
 	strftime(data->folder_name, 8, "%b%d%y", data->time_info);
+	full_path_length = strlen(data->location)+strlen(data->folder_name)+strlen(data->file_name);
+	data->full_path = (char*)malloc(full_path_length+1);
+	sprintf(data->full_path, "%s/%s/%s", data->location, data->folder_name, data->file_name);
 	return 0;
 }
 
