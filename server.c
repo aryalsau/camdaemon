@@ -1,41 +1,27 @@
-//sudo gcc -o camdaemon main.c -landor -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
-//gcc -o camdaemon main.c -lpvcam -lm -ldl -lpthread -lraw1394 -I/usr/local/pvcam/examples
-//top -p $(pgrep -d',' camdaemon)
-//tail -f /var/log/syslog
-#ifdef __GNUC__
-#  if(__GNUC__ > 3 || __GNUC__ ==3)
-#	define _GNUC3_
-#  endif
-#endif
-
 #include <stdlib.h>
-#include <syslog.h>
 #include <stdio.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <signal.h>
-#include <sys/stat.h>
-#include <time.h>
 #include <string.h>
-#include <math.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <fitsio.h>
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <getopt.h>
-#include "camhelper.h"
+#include "common.h"
+#include "camera.h"
+
+
+void signal_handler(int signum);
+int split(char* str, char* str_array[]);
+void parse_command(char buffer[], struct Command* command);
 
 bool VERBOSE = false;
 
 int loop = 1;
 
-int split(char* str, char* str_array[]);
-void signal_handler(int signum);
-
 const char capture_command[] = "capture";
 const char stop_command[] = "stop";
-
 
 void signal_handler(int signum) {
 	switch ( signum ) {
@@ -85,27 +71,26 @@ void parse_command(char buffer[], struct Command* command) {
 
 	char* command_array[5];
 	int command_array_size;
-	char* response;
 
-	command->time_us = 1000;
-	command->binning[0] = 1;
-	command->binning[1] = 1;
+	command->exp_time_us = 1000;
+	command->xbin = 1;
+	command->ybin = 1;
 
 	if (strstr(buffer, capture_command) != NULL){ // capture command received
 		command_array_size = split(buffer, command_array); // split the command
 		command->flag = CAPTURE;
 		switch (command_array_size) {
 			case 2:
-				command->time_us = atol(command_array[1]);
+				command->exp_time_us = (unsigned long)atol(command_array[1]);
 				break;
 			case 3:
-				command->time_us = atol(command_array[1]);
-				command->binning[0] = atol(command_array[2]);
+				command->exp_time_us = (unsigned long)atol(command_array[1]);
+				command->xbin = (unsigned char)atoi(command_array[2]);
 				break;
 			case 4:
-				command->time_us = atol(command_array[1]);
-				command->binning[0] = atoi(command_array[2]);
-				command->binning[1] = atoi(command_array[3]);
+				command->exp_time_us = (unsigned long)atol(command_array[1]);
+				command->xbin = (unsigned char)atoi(command_array[2]);
+				command->ybin = (unsigned char)atoi(command_array[3]);
 				break;
 		}
 	} else if (strstr(buffer, stop_command) != NULL){ // stop command received
@@ -162,7 +147,6 @@ int main(int argc , char *argv[]) {
 	struct Command command;
 	char* response;
 
-
 	/* define socket */
 	socketfd = socket(AF_INET, SOCK_STREAM, 0);
 	// fcntl(socketfd, F_SETFL, O_NONBLOCK);
@@ -175,7 +159,7 @@ int main(int argc , char *argv[]) {
 		if (VERBOSE) printf("camdaemon started on port %d\n", port);
 	}
 
-	bzero((char*)&server, sizeof(server));
+	memset((char*)&server, 0, sizeof(server));
 
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
@@ -196,7 +180,7 @@ int main(int argc , char *argv[]) {
 
 		clientlen = sizeof(client);
 		newsocketfd = accept(socketfd, (struct sockaddr*)&client,  &clientlen);
-		int address = client.sin_addr.s_addr;
+		in_addr_t address = client.sin_addr.s_addr;
 
 		if (newsocketfd < 0) {
 			uninit_camera();
@@ -261,9 +245,10 @@ int main(int argc , char *argv[]) {
 						if (VERBOSE) printf("error writing to socket\nexiting...\n");
 						exit(EXIT_FAILURE);
 					} else {
-						syslog(LOG_INFO, "capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
-						if (VERBOSE) printf("capture %d us %dx%d command received\n", command.time_us, command.binning[0], command.binning[1]);
+						syslog(LOG_INFO, "capture %lu us %dx%d command received\n", command.exp_time_us, command.xbin, command.ybin);
+						if (VERBOSE) printf("capture %lu us %dx%d command received\n", command.exp_time_us, command.xbin, command.ybin);
 					}
+
 					capture_write(&command, response);
 
 					break;
