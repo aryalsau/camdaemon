@@ -18,7 +18,8 @@ struct Data {
 	char* location;
 	char* file_name;
 	char* folder_name;
-	char* full_path;
+	char* folder_path;
+	char* file_path;
 	struct tm *time_info;
 	unsigned long exp_time_us;
 	float temp_c;
@@ -28,7 +29,7 @@ struct Data {
 	unsigned char ybin;
 	unsigned short xdim;
 	unsigned short ydim;
-	short** imagedata;
+	unsigned short** imagedata;
 };
 
 int update_config(char* filepath, struct Data* data);
@@ -37,5 +38,7 @@ int update_xbin(unsigned char* xbin, struct Data* data);
 int update_ybin(unsigned char* ybin, struct Data* data);
 int update_file_name(struct Data* data);
 int write_to_disk(struct Data* data, char* response);
+int allocate_frame(struct Data* data);
+int free_frame(struct Data* data);
 
 #endif

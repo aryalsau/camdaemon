@@ -4,7 +4,11 @@
 #include <string.h>
 #include <time.h>
 #include <stdbool.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fitsio.h>
 #include "common.h"
+
 
 int update_config(char* config_filepath, struct Data* data){
 
@@ -41,15 +45,18 @@ int update_config(char* config_filepath, struct Data* data){
 	return 0;
 }
 
+
 int update_exp_time(unsigned long* exp_time_us, struct Data* data){
 	data->exp_time_us = *exp_time_us;
 	return 0;
 }
 
+
 int update_xbin(unsigned char* xbin, struct Data* data){
 	data->xbin = *xbin;
 	return 0;
 }
+
 
 int update_ybin(unsigned char* ybin, struct Data* data){
 	data->ybin = *ybin;
@@ -58,84 +65,91 @@ int update_ybin(unsigned char* ybin, struct Data* data){
 
 
 int update_file_name(struct Data* data){
-	int full_path_length;
+	int file_path_length, folder_path_length;
 	time_t raw_time;
 	time(&raw_time);
 	data->time_info = gmtime(&raw_time);
+
 	data->file_name = (char*)malloc(19);
 	strftime(data->file_name, 19, "img%j_%H%M%S.fits", data->time_info);
+
 	data->folder_name = (char*)malloc(8);
 	strftime(data->folder_name, 8, "%b%d%y", data->time_info);
-	full_path_length = strlen(data->location)+strlen(data->folder_name)+strlen(data->file_name);
-	data->full_path = (char*)malloc(full_path_length+1);
-	sprintf(data->full_path, "%s/%s/%s", data->location, data->folder_name, data->file_name);
+
+	folder_path_length = strlen(data->location)+1+8+1;
+	data->folder_path = (char*)malloc(folder_path_length+1);
+	sprintf(data->folder_path, "%s/%s/", data->location, data->folder_name);
+
+	file_path_length = strlen(data->location)+1+8+1+19;
+	data->file_path = (char*)malloc(file_path_length+1);
+	sprintf(data->file_path, "%s/%s/%s", data->location, data->folder_name, data->file_name);
+
 	return 0;
 }
 
 
+int allocate_frame(struct Data* data) {
+	data->imagedata = (unsigned short**)malloc((data->xdim)*sizeof(unsigned short*));
+	for(short i=0; i<(data->ydim); i++)
+		(data->imagedata)[i] = (unsigned short*)malloc((data->ydim)*sizeof(unsigned short));
+	return 0;
+}
+
+int free_frame(struct Data* data) {
+	for(short i=0; i<(data->ydim); i++)
+		free((data->imagedata)[i]);
+	free(data->imagedata);
+	return 0;
+}
+
 int write_to_disk(struct Data* data, char* response){
 
-	// int status;
-	// long nelements = data->xdim*data->ydim;
-	// long naxis = 2;
-	// long naxes[2] = {data->xdim,data->ydim};
-	// long fpixel = 1;
-	//
-	// struct stat st = {0};
-	// if (stat(location, &st) == -1) mkdir(location, 0700);
-	//
-	// char *full_path = (char *)malloc( strlen(location)+strlen(filename)+1);
-	// sprintf(full_path, "%s/%s", location, filename);
-	//
-	// fitsfile *fptr;       /* pointer to the FITS file; defined in fitsio.h */
-	//
-	// status = 0;
-	// fits_create_file(&fptr, full_path, &status);   /* create new file */
-	// fits_create_img(fptr, SHORT_IMG, naxis, naxes, &status);
-	//
-	// //writing numbers
-	// fits_update_key(fptr, TLONG, "EXPOSURE", &data->exp_time_us, "Total Exposure Time", &status);
-	// fits_write_key_unit(fptr, "EXPOSURE", "us", &status);
-	//
-	// fits_update_key(fptr, TFLOAT, "TEMPERATURE", &data->temp_c, "Camera Temperature", &status);
-	// fits_write_key_unit(fptr, "TEMPERATURE", "C", &status);
-	//
-	// fits_update_key(fptr, TSHORT, "XBIN", &data->xbin, "x binning", &status);
-	//
-	// fits_update_key(fptr, TSHORT, "YBIN", &data->ybin, "y binning", &status);
-	//
-	// //writing strings
-	// fits_update_key(fptr, TSTRING, "SITE", data->site, "Instrument Location", &status);
-	//
-	// fits_update_key(fptr, TSTRING, "CAMERA", data->camera, "Instrument Camera", &status);
-	//
-	// char *fitsdate = (char *)malloc(24);
-	// strftime(fitsdate, 24,"%Y-%m-%dT%H:%M:%S UT", data->time_info);
-	// fits_update_key(fptr, TSTRING, "DATE", fitsdate, "file creation date (YYYY-MM-DDThh:mm:ss UT)", &status);
-	//
-	// //writing image array data
-	// short ii, jj;
-	// short copy[data->xdim][data->ydim];
-	// for (jj = 0; jj < data->xdim; jj++)
-	// 	for (ii = 0; ii < data->ydim; ii++)
-	// 		copy[ii][jj] = data->imagedata[ii][jj];
-	//
-	// /* Write the array of integers to the image */
-	// fits_write_img(fptr, TSHORT, fpixel, nelements, copy[0], &status);
-	//
-	// char *columns[] = {"ACCELERATION", "FIELD"};
-	// char *formats[] = {"3E","3E"};
-	// char *units[] = {"m/s/s","G"};
-	// int n_rows    = 3;
-	// int n_fields = 2;
-	//
-	// fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
-	// fits_write_col(fptr, TDOUBLE, 1, 1, 1, n_rows, data->grav_field, &status);
-	// fits_write_col(fptr, TDOUBLE, 2, 1, 1, n_rows, data->mag_field, &status);
-	//
-	// fits_close_file(fptr, &status);            /* close the file */
-	//
-	// fits_report_error(stderr, status);  /* print out any error messages */
-	//
+	int status;
+	fitsfile *fptr;
+	long nelements = data->xdim * data->ydim;
+	long naxes[2] = {data->xdim, data->ydim};
+	long naxis = 2;
+	long fpixel = 1;
+
+	mkdir(data->folder_path, 0700);
+
+	status = 0;
+	fits_create_file(&fptr, data->file_path, &status);
+	fits_create_img(fptr, SHORT_IMG, naxis, naxes, &status);
+
+	fits_update_key(fptr, TLONG, "EXPOSURE", &(data->exp_time_us), "Total Exposure Time", &status);
+	fits_write_key_unit(fptr, "EXPOSURE", "us", &status);
+
+	fits_update_key(fptr, TFLOAT, "TEMPERATURE", &(data->temp_c), "Camera Temperature", &status);
+	fits_write_key_unit(fptr, "EXPOSURE", "us", &status);
+
+	fits_update_key(fptr, TSHORT, "XBIN", &(data->xbin), "x binning", &status);
+
+	fits_update_key(fptr, TSHORT, "YBIN", &(data->ybin), "y binning", &status);
+
+	fits_update_key(fptr, TSTRING, "SITE", data->site, "Instrument Location", &status);
+
+	fits_update_key(fptr, TSTRING, "CAMERA", data->camera, "Instrument Camera", &status);
+
+	char *fitsdate = (char *)malloc(24);
+	strftime(fitsdate, 24,"%Y-%m-%dT%H:%M:%S UT", data->time_info);
+	fits_update_key(fptr, TSTRING, "DATE", fitsdate, "file creation date (YYYY-MM-DDThh:mm:ss UT)", &status);
+
+	fits_write_img(fptr, TSHORT, fpixel, nelements, data->imagedata[0], &status);
+
+	char *columns[] = {"ACCELERATION", "FIELD"};
+	char *formats[] = {"3E","3E"};
+	char *units[] = {"m/s/s","G"};
+	int n_rows    = 3;
+	int n_fields = 2;
+
+	fits_create_tbl(fptr, BINARY_TBL, 0, n_fields, columns, formats, units, "COMPASS_DATA", &status);
+	fits_write_col(fptr, TDOUBLE, 1, 1, 1, n_rows, data->grav_field, &status);
+	fits_write_col(fptr, TDOUBLE, 2, 1, 1, n_rows, data->mag_field, &status);
+
+	fits_close_file(fptr, &status);
+
+	fits_report_error(stderr, status);
+
 	return 0;
 }
