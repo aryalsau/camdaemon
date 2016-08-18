@@ -8,6 +8,45 @@
 #include <errno.h>
 #include <fitsio.h>
 #include "common.h"
+#include "camera.h"
+#include "compass/compass.h"
+
+
+int capture(struct Command* command, struct Data* data){
+	char config_filepath[] = "config.cfg";
+	update_exp_time(&(command->exp_time_us), data);
+	update_xbin(&(command->xbin), data);
+	update_ybin(&(command->ybin), data);
+	update_config(config_filepath, data);
+	update_file_name(data);
+	acquire_compass_fielddata(data);
+	acquire_camera_temp(data);
+	acquire_camera_imagedata(data);
+	syslog(LOG_INFO, "capture\n");
+	if (VERBOSE) printf("capture\n");
+	return 0;
+}
+
+
+int capture_write(struct Command* command, char* *response){
+	struct Data data;
+	int file_path_length;
+
+	syslog(LOG_INFO, "capture_write\n");
+	if (VERBOSE) printf("capture_write\n");
+
+	capture(command, &data);
+	write_to_disk(&data, *response);
+	free_frame(&(data.imagedata), &(data.xdim), &(data.ydim));
+
+	file_path_length = strlen(data.file_path);
+	*response = (char*)malloc(file_path_length+2);
+	sprintf(*response, "%s\n", data.file_path);
+
+	free_data(&data);
+
+	return 0;
+}
 
 
 int update_config(char* config_filepath, struct Data* data){
