@@ -33,7 +33,7 @@ struct Data {
 	unsigned char ybin;
 	unsigned short xdim;
 	unsigned short ydim;
-	unsigned short** imagedata;
+	unsigned short* imagedata;
 };
 
 
@@ -43,8 +43,8 @@ int update_xbin(unsigned char* xbin, struct Data* data);
 int update_ybin(unsigned char* ybin, struct Data* data);
 int update_file_name(struct Data* data);
 int write_to_disk(struct Data* data, char* response);
-int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim);
-int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim);
+int allocate_frame(unsigned short* *frame, unsigned short xdim, unsigned short ydim);
+int free_frame(unsigned short* *frame);
 int free_data(struct Data* data);
 int capture(struct Command* command, struct Data* data);
 int capture_write(struct Command* command, char* *response);

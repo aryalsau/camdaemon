@@ -152,8 +152,8 @@ int main(int argc , char *argv[]) {
 	socketfd = socket(AF_INET, SOCK_STREAM, 0);
 	// fcntl(socketfd, F_SETFL, O_NONBLOCK);
 	if (socketfd < 0) {
-		syslog(LOG_ERR, "error opening socket\n");
-		if (VERBOSE) printf("error opening socket\n");
+		syslog(LOG_ERR, "error opening socket\nexiting...\n");
+		if (VERBOSE) printf("error opening socket\nexiting...\n");
 		exit(EXIT_FAILURE);
 	} else {
 		syslog(LOG_INFO, "camdaemon started on port %d\n", port);
@@ -168,8 +168,8 @@ int main(int argc , char *argv[]) {
 	setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (char*)&iset_option, sizeof(iset_option));
 
   if (bind(socketfd, (struct sockaddr*)&server, sizeof(server)) < 0) {
-		syslog(LOG_ERR, "error on binding to port %d\n", port);
-		if (VERBOSE) printf("error on binding to port %d\n", port);
+		syslog(LOG_ERR, "error on binding to port %d\nexiting...\n", port);
+		if (VERBOSE) printf("error on binding to port %d\nexiting...\n", port);
 		exit(EXIT_FAILURE);
 	}
 
@@ -185,8 +185,8 @@ int main(int argc , char *argv[]) {
 
 		if (newsocketfd < 0) {
 			uninit_camera();
-			syslog(LOG_ERR, "error on accepting connection\n");
-			if (VERBOSE) printf("error on accepting connection\n");
+			syslog(LOG_ERR, "error on accepting connection\nexiting...\n");
+			if (VERBOSE) printf("error on accepting connection\nexiting...\n");
 			exit(EXIT_FAILURE);
 		} else {
 			syslog(LOG_INFO, "%d.%d.%d.%d connected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
@@ -269,8 +269,8 @@ int main(int argc , char *argv[]) {
 
 		if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
 			uninit_camera();
-			syslog(LOG_ERR, "error shutting down connection\n");
-			if (VERBOSE) printf("error shutting down connection\n");
+			syslog(LOG_ERR, "error shutting down connection\nexiting...\n");
+			if (VERBOSE) printf("error shutting down connection\nexiting...\n");
 			exit(EXIT_FAILURE);
 		} else {
 			syslog(LOG_INFO, "%d.%d.%d.%d disconnected\n", (address&0xFF), (address&0xFF00)>>8, (address&0xFF0000)>>16, (address&0xFF000000)>>24 );
@@ -283,13 +283,13 @@ int main(int argc , char *argv[]) {
 
 	if (shutdown(socketfd, SHUT_RDWR) < 0) {
 		uninit_camera();
-		syslog(LOG_ERR, "error shutting down socket\n");
-		if (VERBOSE) printf("error shutting down socket\n");
+		syslog(LOG_ERR, "error shutting down socket\nexiting...\n");
+		if (VERBOSE) printf("error shutting down socket\nexiting...\n");
 		exit(EXIT_FAILURE);
 	} else {
 		uninit_camera();
-		syslog(LOG_INFO,"camdaemon port %d shutting down", port);
-		if (VERBOSE) printf("camdaemon port %d shutting down", port);
+		syslog(LOG_INFO,"camdaemon port %d shutting down...", port);
+		if (VERBOSE) printf("camdaemon port %d shutting down...", port);
 		exit(EXIT_SUCCESS);
 	}
 

@@ -37,7 +37,7 @@ int capture_write(struct Command* command, char* *response){
 
 	capture(command, &data);
 	write_to_disk(&data, *response);
-	free_frame(&(data.imagedata), &(data.xdim), &(data.ydim));
+	free_frame(&(data.imagedata));
 
 	file_path_length = strlen(data.file_path);
 	*response = (char*)malloc(file_path_length+2);
@@ -127,20 +127,32 @@ int update_file_name(struct Data* data){
 }
 
 
-int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
-	*frame = (unsigned short**)malloc(*xdim*sizeof(unsigned short*));
-	for(short i=0; i<*xdim; i++)
-		(*frame)[i] = (unsigned short*)malloc(*ydim*sizeof(unsigned short));
+int allocate_frame(unsigned short* *frame, unsigned short xdim, unsigned short ydim) {
+	*frame = (unsigned short*)malloc(xdim*ydim*sizeof(unsigned short*));
 	return 0;
 }
 
 
-int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
-	for(short i=0; i<*xdim; i++)
-		free((*frame)[i]);
+int free_frame(unsigned short* *frame) {
 	free(*frame);
 	return 0;
 }
+
+
+// int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
+// 	*frame = (unsigned short**)malloc(*xdim*sizeof(unsigned short*));
+// 	for(short i=0; i<*xdim; i++)
+// 		(*frame)[i] = (unsigned short*)malloc(*ydim*sizeof(unsigned short));
+// 	return 0;
+// }
+
+
+// int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
+// 	for(short i=0; i<*xdim; i++)
+// 		free((*frame)[i]);
+// 	free(*frame);
+// 	return 0;
+// }
 
 
 int write_to_disk(struct Data* data, char* response){
@@ -179,7 +191,7 @@ int write_to_disk(struct Data* data, char* response){
 	unsigned short array[naxes[0]][naxes[1]];
 	for (unsigned short ii = 0; ii < naxes[0]; ii++)
 		for (unsigned short jj = 0; jj < naxes[1]; jj++)
-			array[ii][jj] = (data->imagedata)[ii][jj];
+			array[ii][jj] = (data->imagedata)[ii+naxes[0]*jj];
 
 	fits_write_img(fptr, TSHORT, fpixel, nelements, array[0], &status);
 
