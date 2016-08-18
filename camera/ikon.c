@@ -1,270 +1,97 @@
-#include "atmcdLXd.h"
-#include "../common.c"
+#include <syslog.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
+#include <string.h>
+#include "../common.h"
+#include "../camera.h"
+#include "atmcdLXd.h"
 
-// external interfaces
-extern int init_camera();
-extern int uninit_camera();
-extern char * capture(long exp_time_ms);
-extern char * preview(long exp_time_ms, int socket);
+// int CameraSelect (int iNumArgs, char* szArgList[]);
+//
+// int CameraSelect (int iNumArgs, char* szArgList[]) {
+// 	if (iNumArgs == 2) {
+// 		at_32 lNumCameras;
+// 		GetAvailableCameras(&lNumCameras);
+// 		int iSelectedCamera = atoi(szArgList[1]);
+// 		if (iSelectedCamera < lNumCameras && iSelectedCamera >= 0) {
+// 		  at_32 lCameraHandle;
+// 		  GetCameraHandle(iSelectedCamera, &lCameraHandle);
+// 		  SetCurrentCamera(lCameraHandle);
+// 		  return iSelectedCamera;
+// 		} else {
+// 			return -1;
+// 		}
+// 	}
+// 	return 0;
+// }
 
-// internal function
-int select_camera (int num_args, char *arg_list[]);
-int get_temperature();
 
-int XDIM;
-int YDIM;
-int DAY;
-int YEAR;
-int XBIN;
-int YBIN;
-int NUMSUBARRAYS;
-int LEFT;
-int RIGHT;
-int TOP1;
-int BOTTOM1;
-int NUMCOADDS;
-long EXPTIMEMS;
-long WAITTIMEMS;
-float TEMPERATURE;
-char * SITENAME;
-char * FILENAME;
-char * MONTH;
-char * FILTER;
-
-char * LOCATION;
-
-int select_camera (int num_args, char *arg_list[]) {
-	if (num_args == 2) {
-		at_32 num_cameras;
-		GetAvailableCameras(&num_cameras);
-		int selected_camera = atoi(arg_list[1]);
-
-		if (selected_camera < num_cameras && selected_camera >= 0) {
-			at_32 camera_handle;
-			GetCameraHandle(selected_camera, &camera_handle);
-			SetCurrentCamera(camera_handle);
-			return selected_camera;
-		} else
-			return -1;
-	}
-	return 0;
-}
-
-int init_camera() {
-	XDIM = 1024;
-	YDIM = 1024;
-	XBIN = 1;
-	YBIN = 1;
-	NUMSUBARRAYS = 1;
-	LEFT = 0;
-	RIGHT = 1024;
-	TOP1 = 1024;
-	BOTTOM1 = 0;
-	NUMCOADDS = 1;
-	SITENAME = "NA";
-	FILTER = "NA";
-	LOCATION = "/media/backup/data/";
-
+int init_camera(void){
 	unsigned long error;
-	int width, height;
 
-	// if (select_camera (argc, argv) < 0) {
-	// 		syslog(LOG_INFO,"CAMERA SELECTION ERROR");
-	// 		return -1;
+	// if (CameraSelect (argc, argv) < 0) {
+	// 	syslog(LOG_ERR, "ikon initialization failed\n");
+	// 	if (VERBOSE) printf("ikon initialization failed\n");
+	// 	exit(EXIT_FAILURE)
+	// }else{
+	// 	syslog(LOG_INFO, "initialising ikon camera...\n");
+	// 	if (VERBOSE) printf("initialising ikon camera...\n");
+	// 	return 0;
 	// }
-	//Initialize CCD
+
 	error = Initialize("/usr/local/etc/andor");
 	if(error!=DRV_SUCCESS){
-			syslog(LOG_INFO,"Initialisation error...exiting");
-			return(1);
+			syslog(LOG_ERR,"initialisation error...exiting");
+			if (VERBOSE) printf("initialisation error...exiting");
+			exit(EXIT_FAILURE);
 	}
+
 	sleep(2); //sleep to allow initialization to complete
 	CoolerON();
 	SetTemperature(-50);
-	//Set Read Mode to --Image--
-	SetReadMode(4);
-	//Set Acquisition mode to --Single scan--
-	SetAcquisitionMode(1);
-	//Set initial exposure time
-	SetExposureTime(0.0100);
-	//Get Detector dimensions
-	GetDetector(&XDIM, &YDIM);
-	//Initialize Shutter
-	SetShutter(1,0,50,50);
-	//Setup Image dimensions
-	SetImage(1,1,1,XDIM,1,YDIM);
+	SetReadMode(4); //Set Read Mode to --Image--
+	SetAcquisitionMode(1); //Set Acquisition mode to --Single scan--
+
 	return 0;
 }
 
-extern int uninit_camera(){
+
+int uninit_camera(void){
 	ShutDown();
+	syslog(LOG_INFO,"uninitialising ikon camera\n");
+	if (VERBOSE) printf("uninitialising ikon camera\n");
+	return 0;
 }
 
-int get_temperature() {
-	int temperature, status;
-	status = GetTemperature(&temperature);
-	if(status==DRV_TEMPERATURE_OFF) {
-			//syslog( LOG_INFO, "Cooler is OFF, Temperature %d C",temperature);
-	} else if(status==DRV_TEMPERATURE_STABILIZED) {
-			//syslog( LOG_INFO, "Cooler Stabilised, Temperature %d C",temperature);
-	} else {
-			//syslog( LOG_INFO, "Cooler is ON, Temperature %d C",temperature);
-	}
-	return temperature;
-}
 
-extern char * capture(long exp_time_ms){
+int acquire_camera_imagedata(struct Data* data) {
+	int snap_status;
+	unsigned long size;
 
-	short temperature;
-
-	temperature = get_temperature();
-
-	syslog(LOG_INFO, "Temperature is %f c\n", (float)temperature);
-
-	EXPTIMEMS = exp_time_ms;
-	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)temperature;
-
-	struct config config_obj = read_config();
-	struct file_path file_path_obj = file_path_string();
-
-	struct stat st = {0};
-	if (stat(file_path_obj.folder_path, &st) == -1) {
-			mkdir(file_path_obj.folder_path, 0700);
-	}
-
-	FILE *data;
-	data = fopen( file_path_obj.full_path , "w" );
-	if( !data ) {
-			syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
-			return 0;
-	}
-
-	struct header image_header = build_header();
-
-	unsigned char * header;
-	const int header_size = 128;
-	header = (unsigned char *)malloc(header_size);
-	copy_header(image_header,header);
-	fwrite( header, 1, header_size, data);
-
-	sleep(ceil((float)exp_time_ms/1000));
-
-	SetExposureTime((float)(EXPTIMEMS/1000));
+	SetExposureTime((float)(data->exp_time_us/1000000));
+	GetDetector((int*)&(data->xdim), (int*)&(data->ydim));
+	size = data->xdim * data->ydim;
+	allocate_frame(&(data->imagedata), (int)data->xdim, (int)data->ydim);
 
 	StartAcquisition();
-
-	GetDetector(&XDIM, &YDIM);
-
-	const unsigned long size = XDIM*YDIM;
-	unsigned short * frame;
-	frame = (unsigned short*)malloc( size *2 );
-
-	int snap_status;
-	//Loop until acquisition finished
 	GetStatus(&snap_status);
-
 	while(snap_status==DRV_ACQUIRING) {
 			GetStatus(&snap_status);
 	}
 
-	GetAcquiredData16(frame, (unsigned long)size);
-
-	//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
-
-	fwrite( frame, sizeof(unsigned short), (size_t)size, data );
-
-	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
-
-	fclose( data );
-	if( header ) free( header );
-	if( frame ) free( frame );
-
-	return file_path_obj.full_path;
+	GetAcquiredData16(data->imagedata, (unsigned long)size);
+	return 0;
 }
 
 
-extern char * preview(long exp_time_ms, int socket){
-	int n;
-
-	short temperature;
-
-	temperature = get_temperature();
-
-	syslog(LOG_INFO, "Temperature is %f c\n", (float)temperature);
-
-	EXPTIMEMS = exp_time_ms;
-	WAITTIMEMS  = 60000;
-	TEMPERATURE = (float)temperature;
-
-	struct config config_obj = read_config();
-	struct file_path file_path_obj = file_path_string();
-
-	struct stat st = {0};
-	if (stat(file_path_obj.folder_path, &st) == -1) {
-			mkdir(file_path_obj.folder_path, 0700);
-	}
-
-	FILE *data;
-	data = fopen( file_path_obj.full_path , "w" );
-	if( !data ) {
-			syslog(LOG_INFO, "%s not opened error\n", file_path_obj.full_path);
-			return 0;
-	}
-
-	struct header image_header = build_header();
-
-	unsigned char * header;
-	const int header_size = 128;
-	header = (unsigned char *)malloc(header_size);
-	copy_header(image_header,header);
-	fwrite( header, 1, header_size, data);
-
-	sleep(ceil((float)exp_time_ms/1000));
-
-	SetExposureTime((float)(EXPTIMEMS/1000));
-
-	StartAcquisition();
-
-	GetDetector(&XDIM, &YDIM);
-
-	const unsigned long size = XDIM*YDIM;
-	unsigned short * frame;
-	frame = (unsigned short*)malloc( size *2 );
-
-	int snap_status;
-	//Loop until acquisition finished
-	GetStatus(&snap_status);
-
-	while(snap_status==DRV_ACQUIRING) {
-			GetStatus(&snap_status);
-	}
-
-	GetAcquiredData16(frame, (unsigned long)size);
-
-	//SaveAsBmp("/home/kuravih/Documents/image.bmp", "/home/kuravih/Dropbox/Exchange/socketDaemon/GREY.PAL", 0, 0);
-
-	fwrite( frame, sizeof(unsigned short), (size_t)size, data );
-
-	syslog(LOG_INFO, "%s created\n", file_path_obj.full_path);
-
-	n = write(socket,header,header_size);
-	if (n < 0) {
-			perror("ERROR writing to socket");
-			exit(1);
-	}
-
-	n = write(socket,frame,2*size);
-	if (n < 0) {
-			perror("ERROR writing to socket");
-			exit(1);
-	}
-
-	fclose( data );
-	if( header ) free( header );
-	if( frame ) free( frame );
-
-	return file_path_obj.full_path;
+int acquire_camera_temp(struct Data* data) {
+	int temperature;
+	syslog(LOG_INFO,"retrieving camera temperature\n");
+	if (VERBOSE) printf("retrieving camera temperature\n");
+	GetTemperature(&temperature);
+	data->temp_c = (float)temperature/100;
+	return 0;
 }
