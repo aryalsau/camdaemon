@@ -88,19 +88,21 @@ int update_file_name(struct Data* data){
 }
 
 
-int allocate_frame(struct Data* data) {
-	data->imagedata = (unsigned short**)malloc((data->xdim)*sizeof(unsigned short*));
-	for(short i=0; i<(data->ydim); i++)
-		(data->imagedata)[i] = (unsigned short*)malloc((data->ydim)*sizeof(unsigned short));
+int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
+	*frame = (unsigned short**)malloc(*xdim*sizeof(unsigned short*));
+	for(short i=0; i<*xdim; i++)
+		(*frame)[i] = (unsigned short*)malloc(*ydim*sizeof(unsigned short));
 	return 0;
 }
 
-int free_frame(struct Data* data) {
-	for(short i=0; i<(data->ydim); i++)
-		free((data->imagedata)[i]);
-	free(data->imagedata);
+
+int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
+	for(short i=0; i<*xdim; i++)
+		free((*frame)[i]);
+	free(*frame);
 	return 0;
 }
+
 
 int write_to_disk(struct Data* data, char* response){
 
@@ -136,8 +138,8 @@ int write_to_disk(struct Data* data, char* response){
 	fits_update_key(fptr, TSTRING, "DATE", fitsdate, "file creation date (YYYY-MM-DDThh:mm:ss UT)", &status);
 
 	unsigned short array[naxes[0]][naxes[1]];
-	for (unsigned short ii = 0; ii < naxes[1]; ii++)
-		for (unsigned short jj = 0; jj < naxes[0]; jj++)
+	for (unsigned short ii = 0; ii < naxes[0]; ii++)
+		for (unsigned short jj = 0; jj < naxes[1]; jj++)
 			array[ii][jj] = (data->imagedata)[ii][jj];
 
 	// fits_write_img(fptr, TSHORT, fpixel, nelements, (data->imagedata)[0], &status);
@@ -157,5 +159,17 @@ int write_to_disk(struct Data* data, char* response){
 
 	fits_report_error(stderr, status);
 
+	return 0;
+}
+
+
+int free_data(struct Data* data){
+	free(data->site);
+	free(data->camera);
+	free(data->location);
+	free(data->file_name);
+	free(data->folder_name);
+	free(data->folder_path);
+	free(data->file_path);
 	return 0;
 }

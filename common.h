@@ -1,9 +1,12 @@
 #ifndef _COMMON
 #define _COMMON
 
+
 extern bool VERBOSE;
 
+
 typedef enum {CAPTURE, STOP, INVALID} Flag;
+
 
 struct Command {
 	Flag flag;
@@ -11,6 +14,7 @@ struct Command {
 	unsigned char xbin;
 	unsigned char ybin;
 };
+
 
 struct Data {
 	char* site;
@@ -32,13 +36,16 @@ struct Data {
 	unsigned short** imagedata;
 };
 
+
 int update_config(char* filepath, struct Data* data);
 int update_exp_time(unsigned long* exp_time_us, struct Data* data);
 int update_xbin(unsigned char* xbin, struct Data* data);
 int update_ybin(unsigned char* ybin, struct Data* data);
 int update_file_name(struct Data* data);
 int write_to_disk(struct Data* data, char* response);
-int allocate_frame(struct Data* data);
-int free_frame(struct Data* data);
+int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim);
+int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim);
+int free_data(struct Data* data);
+
 
 #endif
