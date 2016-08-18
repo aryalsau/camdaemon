@@ -135,7 +135,13 @@ int write_to_disk(struct Data* data, char* response){
 	strftime(fitsdate, 24,"%Y-%m-%dT%H:%M:%S UT", data->time_info);
 	fits_update_key(fptr, TSTRING, "DATE", fitsdate, "file creation date (YYYY-MM-DDThh:mm:ss UT)", &status);
 
-	fits_write_img(fptr, TSHORT, fpixel, nelements, data->imagedata[0], &status);
+	unsigned short array[naxes[0]][naxes[1]];
+	for (unsigned short ii = 0; ii < naxes[1]; ii++)
+		for (unsigned short jj = 0; jj < naxes[0]; jj++)
+			array[ii][jj] = (data->imagedata)[ii][jj];
+
+	// fits_write_img(fptr, TSHORT, fpixel, nelements, (data->imagedata)[0], &status);
+	fits_write_img(fptr, TSHORT, fpixel, nelements, array[0], &status);
 
 	char *columns[] = {"ACCELERATION", "FIELD"};
 	char *formats[] = {"3E","3E"};

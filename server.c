@@ -221,6 +221,7 @@ int main(int argc , char *argv[]) {
 						if (VERBOSE) printf("invalid command\n");
 					}
 					break;
+
 				case STOP:
 					uninit_camera();
 					response = "stop received\nstopping daemon\n";
@@ -236,6 +237,7 @@ int main(int argc , char *argv[]) {
 						exit(EXIT_SUCCESS);
 					}
 					break;
+
 				case CAPTURE:
 					response = "capture received\n";
 					m = write(newsocketfd, response, strlen(response));
@@ -249,9 +251,20 @@ int main(int argc , char *argv[]) {
 						if (VERBOSE) printf("capture %lu us %dx%d command received\n", command.exp_time_us, command.xbin, command.ybin);
 					}
 
-					capture_write(&command, response);
+					capture_write(&command, &response);
 
+					m = write(newsocketfd, response, strlen(response));
+					if (m < 0) {
+						uninit_camera();
+						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
+						if (VERBOSE) printf("error writing to socket\nexiting...\n");
+						exit(EXIT_FAILURE);
+					} else {
+						syslog(LOG_INFO, "file created : %s", response);
+						if (VERBOSE) printf("file created : %s", response);
+					}
 					break;
+
 				default:
 					break;
 			}
