@@ -142,7 +142,6 @@ int write_to_disk(struct Data* data, char* response){
 		for (unsigned short jj = 0; jj < naxes[1]; jj++)
 			array[ii][jj] = (data->imagedata)[ii][jj];
 
-	// fits_write_img(fptr, TSHORT, fpixel, nelements, (data->imagedata)[0], &status);
 	fits_write_img(fptr, TSHORT, fpixel, nelements, array[0], &status);
 
 	char *columns[] = {"ACCELERATION", "FIELD"};

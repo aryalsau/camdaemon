@@ -23,6 +23,7 @@ int loop = 1;
 const char capture_command[] = "capture";
 const char stop_command[] = "stop";
 
+
 void signal_handler(int signum) {
 	switch ( signum ) {
 		case SIGKILL:
@@ -193,12 +194,6 @@ int main(int argc , char *argv[]) {
 		}
 
 
-
-
-
-
-
-
 		n = read(newsocketfd, rx_buffer, 128);
 		if (n < 0) {
 			uninit_camera();
@@ -270,13 +265,6 @@ int main(int argc , char *argv[]) {
 			}
 
 		}
-
-
-
-
-
-
-
 
 
 		if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
