@@ -20,13 +20,13 @@ int uninit_compass(void){
 }
 
 
-int acquire_compass_fielddata(float* grav_field, float* mag_field){
+int acquire_compass_fielddata(struct Data* data){
 	syslog(LOG_ERR, "retrieving compass data\n");
 	if (VERBOSE) printf("retrieving compass data\n");
 
 	for (short i = 0; i<3; i++) {
-		grav_field[i] = i;
-		mag_field[i] = i;
+		data->grav_field[i] = i;
+		data->mag_field[i] = i;
 	}
 
 	return 0;

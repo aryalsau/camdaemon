@@ -14,12 +14,12 @@
 
 int capture(struct Command* command, struct Data* data){
 	char config_filepath[] = "config.cfg";
-	update_exp_time(&(command->exp_time_us), data);
-	update_xbin(&(command->xbin), data);
-	update_ybin(&(command->ybin), data);
+	data->exp_time_us = command->exp_time_us;
+	data->xbin = command->xbin;
+	data->ybin = command->ybin;
 	update_config(config_filepath, data);
 	update_file_name(data);
-	acquire_compass_fielddata(data->grav_field, data->mag_field);
+	acquire_compass_fielddata(data);
 	acquire_camera_temp(data);
 	acquire_camera_imagedata(data);
 	syslog(LOG_INFO, "capture\n");
@@ -81,24 +81,6 @@ int update_config(char* config_filepath, struct Data* data){
 		fclose(config_file);
 
 	}
-	return 0;
-}
-
-
-int update_exp_time(unsigned long* exp_time_us, struct Data* data){
-	data->exp_time_us = *exp_time_us;
-	return 0;
-}
-
-
-int update_xbin(unsigned char* xbin, struct Data* data){
-	data->xbin = *xbin;
-	return 0;
-}
-
-
-int update_ybin(unsigned char* ybin, struct Data* data){
-	data->ybin = *ybin;
 	return 0;
 }
 

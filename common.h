@@ -38,9 +38,6 @@ struct Data {
 
 
 int update_config(char* filepath, struct Data* data);
-int update_exp_time(unsigned long* exp_time_us, struct Data* data);
-int update_xbin(unsigned char* xbin, struct Data* data);
-int update_ybin(unsigned char* ybin, struct Data* data);
 int update_file_name(struct Data* data);
 int write_to_disk(struct Data* data, char* response);
 int allocate_frame(unsigned short* *frame, unsigned short xdim, unsigned short ydim);

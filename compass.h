@@ -3,6 +3,6 @@
 
 int init_compass(void);
 int uninit_compass(void);
-int acquire_compass_fielddata(float* grav_field, float* mag_field);
+int acquire_compass_fielddata(struct Data* data);
 
 #endif
