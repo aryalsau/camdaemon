@@ -9,7 +9,7 @@
 #include <fitsio.h>
 #include "common.h"
 #include "camera.h"
-#include "compass/compass.h"
+#include "compass.h"
 
 
 int capture(struct Command* command, struct Data* data){
@@ -19,7 +19,7 @@ int capture(struct Command* command, struct Data* data){
 	update_ybin(&(command->ybin), data);
 	update_config(config_filepath, data);
 	update_file_name(data);
-	acquire_compass_fielddata(data);
+	acquire_compass_fielddata(data->grav_field, data->mag_field);
 	acquire_camera_temp(data);
 	acquire_camera_imagedata(data);
 	syslog(LOG_INFO, "capture\n");
@@ -137,22 +137,6 @@ int free_frame(unsigned short* *frame) {
 	free(*frame);
 	return 0;
 }
-
-
-// int allocate_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
-// 	*frame = (unsigned short**)malloc(*xdim*sizeof(unsigned short*));
-// 	for(short i=0; i<*xdim; i++)
-// 		(*frame)[i] = (unsigned short*)malloc(*ydim*sizeof(unsigned short));
-// 	return 0;
-// }
-
-
-// int free_frame(unsigned short** *frame, unsigned short* xdim, unsigned short* ydim) {
-// 	for(short i=0; i<*xdim; i++)
-// 		free((*frame)[i]);
-// 	free(*frame);
-// 	return 0;
-// }
 
 
 int write_to_disk(struct Data* data, char* response){

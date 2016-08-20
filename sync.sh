@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # to push code only from eos desktop to vmware
-# sh sync.sh --server=192.168.205.139 --user=kuravih --location=/home/kuravih/camdaemon --code --camera=virtual --force
+# sh sync.sh --server=192.168.205.139 --user=kuravih --location=/home/kuravih/camdaemon --code --make=virtual --force
 
 # to push code only from eos desktop to virtmanger
-# sh sync.sh --server=192.168.122.117 --user=kuravih --location=/home/kuravih/camdaemon --code --camera=virtual --force
+# sh sync.sh --server=192.168.122.117 --user=kuravih --location=/home/kuravih/camdaemon --code --make=virtual --force
 
 
 
 
-
+# sh sync.sh --server=192.168.205.140 --user=root --location=/opt/camdaemon --code --make=nullcam nullcompass camdaemon --force
 
 
 
@@ -18,7 +18,7 @@
 
 
 # some arguments don't have a corresponding value to go with it such as in the --default example.
-# ./sync.sh --server=192.168.1.2 --user=ikon --camera==pixis --force --time --code
+# ./sync.sh --server=192.168.1.2 --user=ikon --make==pixis --force --time --code
 
 for i in "$@"
 do
@@ -49,8 +49,8 @@ case $i in
 		shift # pass argument=value
 	;;
 
-	-m=*|--camera=*) # remotely build for a certain camera
-		camera="${i#*=}"
+	-m=*|--make=*) # remotely build for a certain make
+		make="${i#*=}"
 		shift # pass argument=value
 	;;
 
@@ -143,34 +143,55 @@ if [ "$code" = true ]; then
 fi
 
 
-case "$camera" in
-	clean)
-		if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
-			echo 'Requires ip, user and location'
-		else
-			echo compiling camdaemon for "$camera" on "$user"@"$ip"
-			ssh "$user"@"$ip" "make clean -C " "$location"
-		fi
-	;;
+if [ ! -z "$make" ]; then
 
-	*)
-		if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
-			echo 'Requires ip, user and location'
-		else
-			echo compiling camdaemon for "$camera" on "$user"@"$ip"
-			ssh "$user"@"$ip" "make "$camera" -C " "$location"
+	recipes=$(echo "$make" | tr "," "\n")
 
-# 			daemonsh='#!/bin/bash
-# /bin/su - '"$user"' -c "cd '"$location"'; ./camdaemon -p 3000"'
-# 			echo wrting daemon.sh
-# 			echo "$daemonsh" | ssh "$user"@"$ip" "cat > "$location"/daemon.sh"
-# 			echo configuring daemon.sh
-# 			ssh "$user"@"$ip" "chmod +x "$location"/daemon.sh"
+	for recipe in "$recipes"
+	do
+		echo "$recipe"
+		echo compiling "$recipe" on "$user"@"$ip":"$location"/
+		ssh "$user"@"$ip" "make "$recipe" -C " "$location"
+	done
+fi
 
-		fi
-	;;
 
-esac
+# case "$make" in
+# 	for var in "$make"
+# 	do
+# 		echo "$var"
+# 	done
+#
+#
+#
+#
+# 	# clean)
+# 	# 	if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
+# 	# 		echo 'Requires ip, user and location'
+# 	# 	else
+# 	# 		echo compiling camdaemon for "$make" on "$user"@"$ip"
+# 	# 		ssh "$user"@"$ip" "make clean -C " "$location"
+# 	# 	fi
+# 	# ;;
+# 	#
+# 	# *)
+# 	# 	if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
+# 	# 		echo 'Requires ip, user and location'
+# 	# 	else
+# 	# 		echo compiling camdaemon for "$make" on "$user"@"$ip"
+# 	# 		ssh "$user"@"$ip" "make "$make" -C " "$location"
+#
+# # 			daemonsh='#!/bin/bash
+# # /bin/su - '"$user"' -c "cd '"$location"'; ./camdaemon -p 3000"'
+# # 			echo wrting daemon.sh
+# # 			echo "$daemonsh" | ssh "$user"@"$ip" "cat > "$location"/daemon.sh"
+# # 			echo configuring daemon.sh
+# # 			ssh "$user"@"$ip" "chmod +x "$location"/daemon.sh"
+#
+# 		fi
+# 	;;
+#
+# esac
 
 
 if [ "$time" = true ]; then
@@ -192,7 +213,7 @@ if [ "$help" = true ]; then
 	echo '-l=/somelocation or --location=/somelocation (Absoulte directory on the destination computer)'
 	echo '-a or --all (Sync all files)'
 	echo '-c or --code (Sync only code)'
-	echo '-m or --camera=xxx (Build on the destination computer for a xxx camera)'
+	echo '-m or --make=xxx (Build on the destination computer for xxx device)'
 	echo '-f or --force (Force a sync even if uncomitted changes are available)'
 	echo '-d or --data (Sync data folder)'
 fi

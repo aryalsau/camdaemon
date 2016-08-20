@@ -145,7 +145,7 @@ int acquire_camera_imagedata(struct Data* data) {
 	region.sbin = data->xbin;
 	region.pbin = data->ybin;
 
-	allocate_frame(&(data->imagedata), data->xdim, data->ydim);
+	allocate_frame(data->imagedata, data->xdim, data->ydim);
 
 	if( pl_exp_init_seq() ) {
 		syslog(LOG_INFO,"experiment sequence initialized\n" );
