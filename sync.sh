@@ -1,90 +1,73 @@
 #!/bin/bash
 
-# to push code only from eos desktop to vmware
-# sh sync.sh --server=192.168.205.139 --user=kuravih --location=/home/kuravih/camdaemon --code --make=virtual --force
-
-# to push code only from eos desktop to virtmanger
-# sh sync.sh --server=192.168.122.117 --user=kuravih --location=/home/kuravih/camdaemon --code --make=virtual --force
-
-
-
-
-# sh sync.sh --server=192.168.205.140 --user=root --location=/opt/camdaemon --code --make=nullcam nullcompass camdaemon --force
-
-
-
-
-
-
-
-# some arguments don't have a corresponding value to go with it such as in the --default example.
-# ./sync.sh --server=192.168.1.2 --user=ikon --make==pixis --force --time --code
+# to push code only from macbook to vmware
+# sh sync.sh --server=192.168.205.140 --user=root --location=/opt --code --make=nullcam,nullcompass,camdaemon --force
 
 for i in "$@"
 do
-case $i in
+	case $i in
 
-	-ip=*|--server=*) # the ip of the clent
-		ip="${i#*=}"
-		shift # pass argument=value
-	;;
+		-ip=*|--server=*) # the ip of the clent
+			ip="${i#*=}"
+			shift # pass argument=value
+		;;
 
-	-u=*|--user=*) # the user on the client to run camdaemon
-		user="${i#*=}"
-		shift # pass argument=value
-	;;
+		-u=*|--user=*) # the user on the client to run camdaemon
+			user="${i#*=}"
+			shift # pass argument=value
+		;;
 
-	-l=*|--location=*) # the location for the files in user home on the science camera computer
-		location="${i#*=}"
-		shift # pass argument=value
-	;;
+		-l=*|--location=*) # the location for the files in user home on the science camera computer
+			location="${i#*=}"
+			shift # pass argument=value
+		;;
 
-	-a|--all) # send everything
-		all=true
-		shift # pass argument=value
-	;;
+		-a|--all) # send everything
+			all=true
+			shift # pass argument=value
+		;;
 
-	-c|--code) # send only code
-		code=true
-		shift # pass argument=value
-	;;
+		-c|--code) # send only code
+			code=true
+			shift # pass argument=value
+		;;
 
-	-m=*|--make=*) # remotely build for a certain make
-		make="${i#*=}"
-		shift # pass argument=value
-	;;
+		-m=*|--make=*) # remotely build for a certain make
+			make="${i#*=}"
+			shift # pass argument=value
+		;;
 
-	-f|--force) # force push even if uncomitted changes available
-		force=true
-		shift # pass argument=value
-	;;
+		-f|--force) # force push even if uncomitted changes available
+			force=true
+			shift # pass argument=value
+		;;
 
-	-d|--data) # sync only data
-		data=true
-		shift # pass argument=value
-	;;
+		-d|--data) # sync only data
+			data=true
+			shift # pass argument=value
+		;;
 
-	-t|--time) # force push even if uncomitted changes available
-		time=true
-		shift # pass argument=value
-	;;
+		-t|--time) # force push even if uncomitted changes available
+			time=true
+			shift # pass argument=value
+		;;
 
-	-h|--help) # show help
-		help=true
-		shift # pass argument=value
-	;;
+		-h|--help) # show help
+			help=true
+			shift # pass argument=value
+		;;
 
-	--default)
-		DEFAULT=YES
-		shift # pass argument with no value
-	;;
+		--default)
+			DEFAULT=YES
+			shift # pass argument with no value
+		;;
 
-	*)
-		# unknown option
-		echo 'Unknown option'
-	;;
+		*)
+			# unknown option
+			echo 'Unknown option'
+		;;
 
-esac
+	esac
 done
 
 
@@ -93,8 +76,8 @@ if [ "$data" = true ]; then
 		echo 'Requires ip, user and location'
 		exit
 	else
-		echo rsyncing data from "$user"@"$ip":"$location" to the current directory
-		rsync -a -v "$user"@"$ip":"$location"/data .
+		echo rsyncing data from "$user"@"$ip":"$location"/camdaemon to the current directory
+		rsync -a -v "$user"@"$ip":"$location"/camdaemon/data .
 		exit
 	fi
 fi
@@ -108,8 +91,8 @@ if [ "$all" = true ]; then
 			echo 'Requires ip, user and location'
 			exit
 		else
-			echo rsyncing all files to "$user"@"$ip":"$location"
-			rsync -a -v * "$user"@"$ip":"$location"
+			echo rsyncing all files to "$user"@"$ip":"$location"/camdaemon
+			rsync -a -v * "$user"@"$ip":"$location"/camdaemon
 			echo rsync complete
 			exit
 		fi
@@ -130,9 +113,14 @@ if [ "$code" = true ]; then
 			echo 'Requires ip, user and location'
 			exit
 		else
-			echo rsyncing just code to "$user"@"$ip":"$location"
-			rsync --exclude='.git' --exclude='data/*' --exclude='reference' --exclude='.gitignore' --exclude='LICENSE' --exclude='README.md' --exclude='sync.sh' --exclude='camdaemon' --exclude='daemon.sh' -a -v * "$user"@"$ip":"$location"
+			echo rsyncing just code to "$user"@"$ip":"$location"/camdaemon
+			rsync --exclude='.git' --exclude='data/*' --exclude='.gitignore' --exclude='LICENSE' --exclude='README.md' --exclude='sync.sh' --exclude='camdaemon' -a -v * "$user"@"$ip":"$location"/camdaemon
 			echo rsync complete
+			echo generating daemon.sh
+			deamonsh='#!/bin/bash\ncd '"$location"'/camdaemon; ./camdaemon -v -p 3000'
+			echo "$deamonsh" | ssh "$user"@"$ip" "cat > "$location"/camdaemon/daemon.sh"
+			echo make daemon.sh executable
+			ssh "$user"@"$ip" "chmod +x "$location"/camdaemon/daemon.sh"
 		fi
 	else
 		echo 'uncomitted changes available'
@@ -144,54 +132,13 @@ fi
 
 
 if [ ! -z "$make" ]; then
-
 	recipes=$(echo "$make" | tr "," "\n")
-
 	for recipe in "$recipes"
 	do
-		echo "$recipe"
-		echo compiling "$recipe" on "$user"@"$ip":"$location"/
-		ssh "$user"@"$ip" "make "$recipe" -C " "$location"
+		echo compiling "$recipes" on "$user"@"$ip":"$location"/camdaemon
+		ssh "$user"@"$ip" "make "$recipe" -C " "$location"/camdaemon
 	done
 fi
-
-
-# case "$make" in
-# 	for var in "$make"
-# 	do
-# 		echo "$var"
-# 	done
-#
-#
-#
-#
-# 	# clean)
-# 	# 	if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
-# 	# 		echo 'Requires ip, user and location'
-# 	# 	else
-# 	# 		echo compiling camdaemon for "$make" on "$user"@"$ip"
-# 	# 		ssh "$user"@"$ip" "make clean -C " "$location"
-# 	# 	fi
-# 	# ;;
-# 	#
-# 	# *)
-# 	# 	if [ -z "$ip" ] || [ -z "$user" ] || [ -z "$location" ]; then
-# 	# 		echo 'Requires ip, user and location'
-# 	# 	else
-# 	# 		echo compiling camdaemon for "$make" on "$user"@"$ip"
-# 	# 		ssh "$user"@"$ip" "make "$make" -C " "$location"
-#
-# # 			daemonsh='#!/bin/bash
-# # /bin/su - '"$user"' -c "cd '"$location"'; ./camdaemon -p 3000"'
-# # 			echo wrting daemon.sh
-# # 			echo "$daemonsh" | ssh "$user"@"$ip" "cat > "$location"/daemon.sh"
-# # 			echo configuring daemon.sh
-# # 			ssh "$user"@"$ip" "chmod +x "$location"/daemon.sh"
-#
-# 		fi
-# 	;;
-#
-# esac
 
 
 if [ "$time" = true ]; then
