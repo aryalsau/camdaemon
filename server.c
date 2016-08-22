@@ -10,6 +10,7 @@
 #include <getopt.h>
 #include "common.h"
 #include "camera.h"
+#include "compass.h"
 
 
 void signal_handler(int signum);
@@ -174,6 +175,7 @@ int main(int argc , char *argv[]) {
 	}
 
 	init_camera();
+	init_compass();
 
 	listen(socketfd, 5);
 
@@ -185,6 +187,9 @@ int main(int argc , char *argv[]) {
 
 		if (newsocketfd < 0) {
 			uninit_camera();
+			uninit_compass();
+
+
 			syslog(LOG_ERR, "error on accepting connection\nexiting...\n");
 			if (VERBOSE) printf("error on accepting connection\nexiting...\n");
 			exit(EXIT_FAILURE);
@@ -197,6 +202,9 @@ int main(int argc , char *argv[]) {
 		n = read(newsocketfd, rx_buffer, 128);
 		if (n < 0) {
 			uninit_camera();
+			uninit_compass();
+
+
 			syslog(LOG_ERR, "error reading from socketfd\nexiting...\n");
 			if (VERBOSE) printf("error reading from socketfd\nexiting...\n");
 			exit(EXIT_FAILURE);
@@ -219,10 +227,14 @@ int main(int argc , char *argv[]) {
 
 				case STOP:
 					uninit_camera();
+					uninit_compass();
+
 					response = "stop received\nstopping daemon\n";
 					m = write(newsocketfd, response, strlen(response)); // respond with stopping message
 					if (m < 0) {
 						uninit_camera();
+						uninit_compass();
+
 						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
 						if (VERBOSE) printf("error writing to socket\nexiting...\n");
 						exit(EXIT_FAILURE);
@@ -238,6 +250,8 @@ int main(int argc , char *argv[]) {
 					m = write(newsocketfd, response, strlen(response));
 					if (m < 0) {
 						uninit_camera();
+						uninit_compass();
+
 						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
 						if (VERBOSE) printf("error writing to socket\nexiting...\n");
 						exit(EXIT_FAILURE);
@@ -251,6 +265,8 @@ int main(int argc , char *argv[]) {
 					m = write(newsocketfd, response, strlen(response));
 					if (m < 0) {
 						uninit_camera();
+						uninit_compass();
+
 						syslog(LOG_ERR, "error writing to socket\nexiting...\n");
 						if (VERBOSE) printf("error writing to socket\nexiting...\n");
 						exit(EXIT_FAILURE);
@@ -269,6 +285,8 @@ int main(int argc , char *argv[]) {
 
 		if (shutdown(newsocketfd, SHUT_RDWR) < 0) {
 			uninit_camera();
+			uninit_compass();
+
 			syslog(LOG_ERR, "error shutting down connection\nexiting...\n");
 			if (VERBOSE) printf("error shutting down connection\nexiting...\n");
 			exit(EXIT_FAILURE);
@@ -283,11 +301,15 @@ int main(int argc , char *argv[]) {
 
 	if (shutdown(socketfd, SHUT_RDWR) < 0) {
 		uninit_camera();
+		uninit_compass();
+
 		syslog(LOG_ERR, "error shutting down socket\nexiting...\n");
 		if (VERBOSE) printf("error shutting down socket\nexiting...\n");
 		exit(EXIT_FAILURE);
 	} else {
 		uninit_camera();
+		uninit_compass();
+
 		syslog(LOG_INFO,"camdaemon port %d shutting down...", port);
 		if (VERBOSE) printf("camdaemon port %d shutting down...", port);
 		exit(EXIT_SUCCESS);

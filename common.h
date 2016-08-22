@@ -27,8 +27,8 @@ struct Data {
 	struct tm *time_info;
 	unsigned long exp_time_us;
 	float temp_c;
-	float grav_field[3];
-	float mag_field[3];
+	double grav_field[3];
+	double mag_field[3];
 	unsigned char xbin;
 	unsigned char ybin;
 	unsigned short xdim;

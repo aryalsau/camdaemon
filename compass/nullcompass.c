@@ -1,4 +1,3 @@
-#include <phidget21.h>
 #include <syslog.h>
 #include <stdbool.h>
 #include <stdio.h>
