@@ -9,6 +9,7 @@ CPhidgetSpatialHandle spatial = 0; //Declare a spatial handle
 
 int init_compass(void){
 
+	const char *err;
 	int result;
 
 	syslog(LOG_ERR, "initialising compass\n");
@@ -20,7 +21,7 @@ int init_compass(void){
 	if((result = CPhidget_waitForAttachment((CPhidgetHandle)spatial, 100))) {
 		CPhidget_getErrorDescription(result, &err);
 		printf("Problem waiting for attachment: %s\n", err);
-		return compass_data_object;
+		return 0;
 	}
 
 	int serial_no, version;
@@ -50,18 +51,18 @@ int acquire_compass_fielddata(struct Data* data){
 	double mag_field;
 
 	bool readerror = false;
-	char j = 0;
+	unsigned char j = 0;
 	do {
-		for (char i = 0; i<3; i++) {
-			CPhidgetSpatial_getAcceleration(spatial, i, &acceleration);
-			CPhidgetSpatial_getMagneticField(spatial, i, &magnetic_field);
-			if (acceleration < 10.0){
+		for (unsigned char i = 0; i<3; i++) {
+			CPhidgetSpatial_getAcceleration(spatial, i, &grav_field);
+			CPhidgetSpatial_getMagneticField(spatial, i, &mag_field);
+			if (grav_field < 10.0){
 				readerror = false;
 				data->grav_field[i] = grav_field;
 			} else {
 				readerror = true;
 			}
-			if (magnetic_field < 10.0){
+			if (mag_field < 10.0){
 				readerror = false;
 				data->mag_field[i] = mag_field;
 			} else {
