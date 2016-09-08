@@ -166,9 +166,9 @@ int acquire_camera_imagedata(struct Data* data) {
 		if (VERBOSE) printf("sequence setup failed...exitting\n" );
 		exit(EXIT_FAILURE);
 	}
-
-	pl_exp_start_seq(camera_handle, &(data->imagedata));
-
+	
+	pl_exp_start_seq(camera_handle, data->imagedata);
+	
 	while( pl_exp_check_status(camera_handle, &status, &not_needed) && (status != READOUT_COMPLETE && status != READOUT_FAILED) );
 
 	if( status == READOUT_FAILED ) {
